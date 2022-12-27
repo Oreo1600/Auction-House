@@ -9,30 +9,38 @@ namespace Auction_Dbot.Auction_House.Commands
     {
         public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> userCollection)
         {
-            BsonDocument userdata = Database.getUserData((long)cmd.User.Id, userCollection).Result;
-            if (userdata.GetValue("cardCreationInProgress").AsBoolean)
+            try
             {
-                await cmd.RespondAsync("One of your card is missing an image. Please upload it first!", ephemeral: true);
-                return;
+                BsonDocument userdata = Database.getUserData((long)cmd.User.Id, userCollection).Result;
+                if (userdata.GetValue("cardCreationInProgress").AsBoolean)
+                {
+                    await cmd.RespondAsync("One of your card is missing an image. Please upload it first!", ephemeral: true);
+                    return;
+                }
+
+                DateTime canCreateCard = userdata.GetValue("canCreateCardUntill").AsDateTime;
+
+                /* if (canCreateCard.CompareTo(DateTime.Now) > 0)
+                 {
+                     TimeSpan timeSpan = canCreateCard.Subtract(DateTime.Now);
+                     await cmd.RespondAsync("You have already created a card today. Try again in " + timeSpan.Hours + " hours", ephemeral:true);
+                     return;
+                 }*/
+
+                var mb = new ModalBuilder()
+                .WithTitle("New Card")
+                .WithCustomId("NewCard")
+                .AddTextInput("Card Name (Cannot change later)", "CardName", placeholder: "What would the name be for this creation?", maxLength: 50, required: true)
+                .AddTextInput("Card Description", "CardDesc", TextInputStyle.Paragraph,
+                "Any special features in mind?", maxLength: 100, required: true);
+
+                await cmd.RespondWithModalAsync(mb.Build());
             }
-
-            DateTime canCreateCard = userdata.GetValue("canCreateCardUntill").AsDateTime;
-
-            /* if (canCreateCard.CompareTo(DateTime.Now) > 0)
-             {
-                 TimeSpan timeSpan = canCreateCard.Subtract(DateTime.Now);
-                 await cmd.RespondAsync("You have already created a card today. Try again in " + timeSpan.Hours + " hours", ephemeral:true);
-                 return;
-             }*/
-
-            var mb = new ModalBuilder()
-            .WithTitle("New Card")
-            .WithCustomId("NewCard")
-            .AddTextInput("Card Name (Cannot change later)", "CardName", placeholder: "What would the name be for this creation?", maxLength: 50, required: true)
-            .AddTextInput("Card Description", "CardDesc", TextInputStyle.Paragraph,
-            "Any special features in mind?", maxLength: 100, required: true);
-
-            await cmd.RespondWithModalAsync(mb.Build());
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+            }
+            
         }
 
         public static async Task FormHandle(SocketModal modal)
@@ -108,7 +116,7 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             catch(Exception e)
             {
-                    
+                Console.WriteLine(e.Message + e.StackTrace);
             }
         }
     }

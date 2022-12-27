@@ -13,7 +13,7 @@ namespace Auction_Dbot.Auction_House
         public static void Connect()
         {
             string dbtoken = Environment.GetEnvironmentVariable("dbConString");
-            var settings = MongoClientSettings.FromConnectionString(dbtoken);//.FromConnectionString(Environment.GetEnvironmentVariable("dbToken"));
+            var settings = MongoClientSettings.FromConnectionString(dbtoken);
             stgs = settings;
             var dbclient = new MongoClient(settings);
             client = dbclient;
@@ -24,15 +24,24 @@ namespace Auction_Dbot.Auction_House
 
         public static async Task<bool> IsDocExistsAsync(IMongoCollection<BsonDocument> collection, long ID)
         {
-            var documents = await collection.Find(new BsonDocument()).ToListAsync();
-            foreach (var document in documents)
+            try
             {
-                if (document.ContainsValue(ID))
+                var documents = await collection.Find(new BsonDocument()).ToListAsync();
+                foreach (var document in documents)
                 {
-                    return true;
+                    if (document.ContainsValue(ID))
+                    {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+                throw;
+            }
+            
         }
 
         public static Task AddUser(SocketUser socketuser, IMongoCollection<BsonDocument> collection)

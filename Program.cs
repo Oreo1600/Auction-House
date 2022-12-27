@@ -8,6 +8,7 @@ namespace Auction_Dbot
 {
     public class Program
     {
+
         public static Task Main(string[] args) => new Program().MainAsync();
         public static DiscordSocketClient _client;
         public static System.Timers.Timer auctionTimer;
@@ -15,49 +16,58 @@ namespace Auction_Dbot
         public static System.Timers.Timer gradRateUpgrade;
         public async Task MainAsync()
         {
-            var config = new DiscordSocketConfig()
+            try
             {
-                // Other config options can be presented here.
-                GatewayIntents = GatewayIntents.All
-            };
-            _client = new DiscordSocketClient(config);
-            _client.Log += Log;
+                var config = new DiscordSocketConfig()
+                {
+                    // Other config options can be presented here.
+                    GatewayIntents = GatewayIntents.All
+                };
+                _client = new DiscordSocketClient(config);
+                _client.Log += Log;
 
-            var token = Environment.GetEnvironmentVariable("botToken");
+                var token = Environment.GetEnvironmentVariable("botToken");
 
-            //Starting the bot
-            await _client.LoginAsync(TokenType.Bot, token);
-            await _client.StartAsync();
-            Database.Connect();
+                //Starting the bot
+                await _client.LoginAsync(TokenType.Bot, token);
+                await _client.StartAsync();
+                Database.Connect();
 
-            //Starting an auction
-            auctionTimer = new System.Timers.Timer(10800000);
-            auctionTimer.Elapsed += new ElapsedEventHandler(Handlers.OnTimedEvent);
+                //Starting an auction
+                auctionTimer = new System.Timers.Timer(10800000);
+                auctionTimer.Elapsed += new ElapsedEventHandler(Handlers.OnTimedEvent);
 
-            //Resetting MoneyPool
-            moneyPoolTimer = new System.Timers.Timer(259200000);
-            MoneyPool.MoneyPoolReset();
-            moneyPoolTimer.Elapsed += new ElapsedEventHandler(MoneyPool.MoneyPoolReset);
-            moneyPoolTimer.Start();
+                //Resetting MoneyPool
+                moneyPoolTimer = new System.Timers.Timer(259200000);
+                MoneyPool.MoneyPoolReset();
+                moneyPoolTimer.Elapsed += new ElapsedEventHandler(MoneyPool.MoneyPoolReset);
+                moneyPoolTimer.Start();
 
-            //gradually increasing rates of users
-            gradRateUpgrade = new System.Timers.Timer(7200000);
-            MoneyPool.IncreaseRate();
-            gradRateUpgrade.Elapsed += new ElapsedEventHandler(MoneyPool.IncreaseRate);
-            gradRateUpgrade.Start();
+                //gradually increasing rates of users
+                gradRateUpgrade = new System.Timers.Timer(7200000);
+                MoneyPool.IncreaseRate();
+                gradRateUpgrade.Elapsed += new ElapsedEventHandler(MoneyPool.IncreaseRate);
+                gradRateUpgrade.Start();
 
-            //Handling events
-            _client.Ready += Handlers.Client_Ready;
-            _client.SlashCommandExecuted += Handlers.SlashCommandHandler;
-            _client.MessageReceived += Handlers.MessageRecievedHandler;
-            _client.ModalSubmitted += Handlers.ModalSubmittedHandler;
-            _client.JoinedGuild += Handlers.JoinedGuildHandler;
-            _client.LeftGuild += Handlers.LeftGuildHandlers;
-            _client.SelectMenuExecuted += Handlers.SelectMenuExecutedHandler;
-            _client.ButtonExecuted += Handlers.Buttonhandler;
-            Console.WriteLine("Logged in as " + _client.CurrentUser.Username);
+                //Handling events
+                _client.Ready += Handlers.Client_Ready;
+                _client.SlashCommandExecuted += Handlers.SlashCommandHandler;
+                _client.MessageReceived += Handlers.MessageRecievedHandler;
+                _client.ModalSubmitted += Handlers.ModalSubmittedHandler;
+                _client.JoinedGuild += Handlers.JoinedGuildHandler;
+                _client.LeftGuild += Handlers.LeftGuildHandlers;
+                _client.SelectMenuExecuted += Handlers.SelectMenuExecutedHandler;
+                _client.ButtonExecuted += Handlers.Buttonhandler;
+                Console.WriteLine("Logged in as " + _client.CurrentUser.Username);
 
-            await Task.Delay(-1);
+                await Task.Delay(-1);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+                throw;
+            }
+            
         }
         private Task Log(LogMessage msg)
         {
