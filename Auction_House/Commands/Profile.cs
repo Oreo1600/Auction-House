@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 
@@ -12,36 +13,43 @@ namespace Auction_Dbot.Auction_House.Commands
     {
         public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection)
         {
-            
-            if (cmd.Data.Options.Count != 0) // if a user account is available in the options
+            try
             {
-                SocketUser user = cmd.Data.Options.First().Value as SocketUser;
-                //checking if the account is actually a bot
-                if (user.IsBot)
+                if (cmd.Data.Options.Count != 0) // if a user account is available in the options
                 {
-                    await cmd.RespondAsync("This account belongs to a bot",ephemeral:true);
-                    return;
-                }
-                var embed = profileEmbedBuilder(user, collection);
-                if (embed == null)
-                {
-                    await cmd.RespondAsync("This user doesn't play auction house somehow.", ephemeral: true);
-                    return;
-                }
-                var buttonTP = new ComponentBuilder()
-                    .WithButton("Owned Cards", $"owned_{cmd.User.Id}_{user.Id}")
-                    .WithButton("Created Cards", $"created_{cmd.User.Id}_{user.Id}");
+                    SocketUser user = cmd.Data.Options.First().Value as SocketUser;
+                    //checking if the account is actually a bot
+                    if (user.IsBot)
+                    {
+                        await cmd.RespondAsync("This account belongs to a bot", ephemeral: true);
+                        return;
+                    }
+                    var embed = profileEmbedBuilder(user, collection);
+                    if (embed == null)
+                    {
+                        await cmd.RespondAsync("This user doesn't play auction house somehow.", ephemeral: true);
+                        return;
+                    }
+                    var buttonTP = new ComponentBuilder()
+                        .WithButton("Owned Cards", $"owned_{cmd.User.Id}_{user.Id}")
+                        .WithButton("Created Cards", $"create_{cmd.User.Id}_{user.Id}");
 
-                await cmd.RespondAsync(embed: embed.Build(),components:buttonTP.Build());
-                return;
+                    await cmd.RespondAsync(embed: embed.Build(), components: buttonTP.Build());
+                    return;
+                }
+                // if not send profile of user who sent the command
+                SocketUser socketUser = cmd.User;
+                var button = new ComponentBuilder()
+                        .WithButton("Owned Cards", $"owned_{cmd.User.Id}_{socketUser.Id}")
+                        .WithButton("Created Cards", $"create_{cmd.User.Id}_{socketUser.Id}");
+                var embedBuilder = profileEmbedBuilder(socketUser, collection);
+                await cmd.RespondAsync(embed: embedBuilder.Build(), components: button.Build());
             }
-            // if not send profile of user who sent the command
-            SocketUser socketUser = cmd.User;
-            var button = new ComponentBuilder()
-                    .WithButton("Owned Cards", $"owned_{cmd.User.Id}_{socketUser.Id}")
-                    .WithButton("Created Cards", $"create_{cmd.User.Id}_{socketUser.Id}");
-            var embedBuilder = profileEmbedBuilder(socketUser, collection);
-            await cmd.RespondAsync(embed:embedBuilder.Build(),components:button.Build());
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+            }
+            
 
         }
         public static EmbedBuilder profileEmbedBuilder(SocketUser socketUser, IMongoCollection<BsonDocument> collection)
@@ -66,9 +74,14 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message + e.StackTrace);
                 if (e.Message == "One or more errors occurred. (Sequence contains no elements)")
                 {
                     return null;
+                }
+                else
+                {
+                    Console.WriteLine(e.Message + e.StackTrace);
                 }
                 throw;
             }
@@ -77,6 +90,7 @@ namespace Auction_Dbot.Auction_House.Commands
 
         public static (ComponentBuilder cmp, string desc) createCardProfileEmbed(BsonArray cardList, IMongoCollection<BsonDocument> itemCollection, SocketUser user, int startAT, string cardType, SocketUser interactor)
         {
+            Console.WriteLine(cardList.Count);
             string desc = "";
             var buttons = new ComponentBuilder();
             if (cardList.Count == 0) // if the card list has 0 cards display none
@@ -85,6 +99,7 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             else if (cardList.Count < 10) // if card list has less than 10 cards we wont be adding next button
             {
+                Console.WriteLine(cardList.Count);
                 for (int i = 0; i < cardList.Count; i++)
                 {
                     BsonDocument itemData = Database.getItemData(cardList[i].AsObjectId, itemCollection).Result;
@@ -111,6 +126,7 @@ namespace Auction_Dbot.Auction_House.Commands
                             skipNext = true;
                             break;
                         }
+                        
                     }
                 }
                 if (!skipNext)
@@ -118,47 +134,62 @@ namespace Auction_Dbot.Auction_House.Commands
                     buttons.AddRow(new ActionRowBuilder().WithButton("Next>>", $"{cardType}_" + interactor.Id + "_" + (i) + "_" + user.Id));
                 }
             }
-
+            
             return (buttons, desc);
         }
         // if owned card button is clicked. customId = owned_cmdUserID_profileUserID
         public static async Task ownedCards(SocketMessageComponent component, IMongoCollection<BsonDocument> userCollection, IMongoCollection<BsonDocument> itemCollection)
         {
+            try
+            {
+                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
+                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
+                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, user, 1, "nextButtonOwned", component.User);
 
-            SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
-            BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
-            BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
-            (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection,user ,1, "nextButtonOwned", component.User);
-            
 
-            var embed = new EmbedBuilder()
-                .WithAuthor(user.Username + "#" + user.Discriminator)
-                .WithTitle("Owned Cards")
-                .WithDescription(desc)
-                .WithColor(Color.DarkTeal)
-                .WithCurrentTimestamp();
+                var embed = new EmbedBuilder()
+                    .WithAuthor(user.Username + "#" + user.Discriminator)
+                    .WithTitle("Owned Cards")
+                    .WithDescription(desc)
+                    .WithColor(Color.DarkTeal)
+                    .WithCurrentTimestamp();
 
-            await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); }) ;
+                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+            }
         }
 
         // if created cards button is clicked. customId = created_cmdUserID_profileUserID
         public static async Task createdCards(SocketMessageComponent component, IMongoCollection<BsonDocument> userCollection, IMongoCollection<BsonDocument> itemCollection)
         {
-            SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
-            BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
-            BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
+            try
+            {
+                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
+                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
 
-            (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user, 1,"nextButtonCreated",component.User);
+                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user, 1, "nextButtonCreated", component.User);
 
 
-            var embed = new EmbedBuilder()
-                .WithAuthor(user.Username + "#" + user.Discriminator)
-                .WithTitle("Created Cards")
-                .WithDescription(desc)
-                .WithColor(Color.DarkTeal)
-                .WithCurrentTimestamp();
+                var embed = new EmbedBuilder()
+                    .WithAuthor(user.Username + "#" + user.Discriminator)
+                    .WithTitle("Created Cards")
+                    .WithDescription(desc)
+                    .WithColor(Color.DarkTeal)
+                    .WithCurrentTimestamp();
 
-            await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+                
+            }
+            
         }
         // if a card button is clicked, get the card info. customid = cardButton_cmdUserId_itemId
         public static async Task cardButtonClicked(SocketMessageComponent component, IMongoCollection<BsonDocument> itemCollection)

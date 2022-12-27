@@ -14,27 +14,37 @@ namespace Auction_Dbot.Auction_House
     {
         public static async Task SlashCommandHandler(SocketSlashCommand command)
         {
-            var serverCollection = Database.getCollection("Servers");
-            var userCollection = Database.getCollection("Users");
-            var itemCollection = Database.getCollection("Cards");
-            if (command.Channel is not IDMChannel)
+            try
             {
-                await Database.CheckAndAddServer(Program._client.GetGuild(command.GuildId.Value), serverCollection);
-            }
-            await Database.CheckAndAddUser(command.User, userCollection);
+                var serverCollection = Database.getCollection("Servers");
+                var userCollection = Database.getCollection("Users");
+                var itemCollection = Database.getCollection("Cards");
 
-            //receiving commands
-            switch (command.Data.Name)
-            {
-                case "help": await Help.Execute(command); break;
-                case "create": await Create.Execute(command,userCollection); break;
-                case "card": await Card.Execute(command, itemCollection); break;
-                case "rate": await Rate.Execute(command, itemCollection); break;
-                case "profile": await Profile.Execute(command, userCollection); break;
-                case "pool": await Pool.Execute(command, userCollection); break;
-                case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
-                default: break;
+                if (command.Channel is not IDMChannel)
+                {
+                    await Database.CheckAndAddServer(Program._client.GetGuild(command.GuildId.Value), serverCollection);
+                }
+                await Database.CheckAndAddUser(command.User, userCollection);
+
+                //receiving commands
+                switch (command.Data.Name)
+                {
+                    case "help": await Help.Execute(command); break;
+                    case "create": await Create.Execute(command, userCollection); break;
+                    case "card": await Card.Execute(command, itemCollection); break;
+                    case "rate": await Rate.Execute(command, itemCollection); break;
+                    case "profile": await Profile.Execute(command, userCollection); break;
+                    case "pool": await Pool.Execute(command, userCollection); break;
+                    case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
+                    default: break;
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + e.StackTrace);
+                throw;
+            }
+            
         }
         public static async Task Client_Ready()
         {           
@@ -131,6 +141,7 @@ namespace Auction_Dbot.Auction_House
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 /*if (e.Message == "One or more errors occurred. (Sequence contains no elements)")
                 {
                     Console.Write("");
@@ -154,41 +165,51 @@ namespace Auction_Dbot.Auction_House
             var serverCollection = Database.getCollection("Servers");
             
             await Database.CheckAndAddUser(component.User, userCollection);
-
-            //check if the person who sent is command is the one that is interacting
-            if (component.Data.CustomId.StartsWith("bidButton"))
+            try
             {
-                await Auction.Bid(component);
-                return;
+                //check if the person who sent is command is the one that is interacting
+                if (component.Data.CustomId.StartsWith("bidButton"))
+                {
+                    await Auction.Bid(component);
+                    return;
+                }
+                if (ulong.Parse(component.Data.CustomId.Split("_")[1]) != component.User.Id)
+                {
+                    await component.RespondAsync("You cannot interact with this menu", ephemeral: true);
+                    return;
+                }
+                string buttonType = component.Data.CustomId.Split("_")[0];
+                switch (buttonType)
+                {
+                    case "owned":
+                        _ = Task.Run(() => { Profile.ownedCards(component, userCollection, itemCollection); });
+                        break;
+                    case "create": _ = Task.Run(() => { Profile.createdCards(component, userCollection, itemCollection); });  break;
+                    case "cardButton": await Profile.cardButtonClicked(component, itemCollection); break;
+                    case "nextButtonCreated":
+                        await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
+                        break;
+                    case "previousButtonCreated":
+                        await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
+                        break;
+                    case "nextButtonOwned":
+                        await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
+                        break;
+                    case "previousButtonOwned":
+                        await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
+                        break;
+                    case "withdraw": await Pool.Withdraw(component, userCollection); break;
+                    case "tglAuctionHouse": await ChangeSettings.toogleAuctionHouse(component, serverCollection); break;
+                    case "setAuctionChannel": await ChangeSettings.setAuctionHouse(component, serverCollection); break;
+                    default:
+                        break;
+                }
             }
-            if (ulong.Parse(component.Data.CustomId.Split("_")[1]) != component.User.Id)
+            catch (Exception e)
             {
-                await component.RespondAsync("You cannot interact with this menu", ephemeral: true);
-                return;
+                Console.WriteLine(e.Message + e.StackTrace);
             }
-            string buttonType = component.Data.CustomId.Split("_")[0];
-            switch (buttonType)
-            {
-                case "owned":
-                    _ = Task.Run(() => { Profile.ownedCards(component, userCollection, itemCollection); });
-                    break;
-                case "create": await Profile.createdCards(component, userCollection, itemCollection); break;
-                case "cardButton": await Profile.cardButtonClicked(component, itemCollection); break;
-                case "nextButtonCreated": await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
-                    break;
-                case "previousButtonCreated": await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
-                    break;
-                case "nextButtonOwned": await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
-                    break;
-                case "previousButtonOwned":
-                    await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
-                    break;
-                case "withdraw": await Pool.Withdraw(component,userCollection); break;
-                case "tglAuctionHouse": ChangeSettings.toogleAuctionHouse(component, serverCollection); break;
-                case "setAuctionChannel": ChangeSettings.setAuctionHouse(component, serverCollection); break;
-                default:
-                    break;
-            }
+            
             
         }
         public static async Task SelectMenuExecutedHandler(SocketMessageComponent component)
