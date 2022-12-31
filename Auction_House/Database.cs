@@ -62,6 +62,7 @@ namespace Auction_Dbot.Auction_House
                 {"cardListCreated", new BsonArray() },
                 {"cardListOwned", new BsonArray()},
                 {"cash", 1000},
+                {"points",0 },
             };
             return collection.InsertOneAsync(newDoc);            
         }
@@ -75,6 +76,7 @@ namespace Auction_Dbot.Auction_House
                     {"gid",(long)guild.Id },
                     {"gname",guild.Name },
                     {"isAuctionHouseOn",true },
+                    {"mentionRole","@here" },
                     {"inviteLink",defaultguild.CreateInviteAsync(null).Result.Url },
                     {"auctionChannel",(long)defaultguild.Id },
                     {"isServer",true }

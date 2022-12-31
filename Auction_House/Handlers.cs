@@ -50,6 +50,7 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
+                
                 //set commands
             }
             catch (Exception exception)
@@ -64,7 +65,7 @@ namespace Auction_Dbot.Auction_House
             await Database.CheckAndAddUser(modal.User, userCollection);
             if (modal.Data.CustomId == "NewCard") // modal for card create command
             {
-                _ = Task.Run(() => { Commands.Create.FormHandle(modal); });
+                _ = Task.Run(() => { Create.FormHandle(modal); });
             }
             else if (modal.Data.CustomId.StartsWith("bidModal")) // modal for auction bidding
             {
