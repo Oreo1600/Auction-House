@@ -50,6 +50,7 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
+                
                 //set commands
             }
             catch (Exception exception)

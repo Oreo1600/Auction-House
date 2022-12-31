@@ -69,7 +69,7 @@ namespace Auction_Dbot.Auction_House.Commands
             var userRateUpdate = Database.createUpdateSet("payoutRate", 0.0);
             var poolMoneyUpdate = Builders<BsonDocument>.Update.Set("moneyPool", poolAmount - int.Parse(payoutCash.ToString()));
 
-            TimestampTag tag = new TimestampTag() { Time = DateTime.Now, Style = TimestampTagStyles.LongDateTime };
+            TimestampTag tag = new TimestampTag() { Time = DateTime.Now, Style = TimestampTagStyles.ShortDateTime };
             var withdrawpushUpdate = Builders<BsonDocument>.Update.Push("recentWithdraws", $"{component.User.Mention} withdrew **{payoutCash}** from the moneypool.  | {tag}");
             await userCollection.UpdateOneAsync(pinFilter, poolMoneyUpdate);
             await userCollection.UpdateOneAsync(pinFilter, withdrawpushUpdate);

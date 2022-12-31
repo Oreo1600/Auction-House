@@ -26,7 +26,7 @@ namespace Auction_Dbot
                 _client = new DiscordSocketClient(config);
                 _client.Log += Log;
 
-                var token = Environment.GetEnvironmentVariable("botToken");
+                string token = Environment.GetEnvironmentVariable("botToken");
 
                 //Starting the bot
                 await _client.LoginAsync(TokenType.Bot, token);

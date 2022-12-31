@@ -18,7 +18,8 @@ namespace Auction_Dbot.Auction_House
             var timeUpdate = Database.createUpdateSet("resetTime",DateTime.Now.AddMilliseconds(259200000));
             await userCollection.UpdateOneAsync(pinFilter,timeUpdate);
 
-            var arrayUpdate = Database.createUpdateSet("recentWithdraws", new BsonArray());
+            BsonArray array = pool.GetValue("recentWithdraws").AsBsonArray;
+            var arrayUpdate = Builders<BsonDocument>.Update.PullAll("recentWithdraws", array);
             await userCollection.UpdateOneAsync(pinFilter, arrayUpdate);
 
             var usersFilter = Builders<BsonDocument>.Filter.Gt<Int64>("userid", 0);

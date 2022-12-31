@@ -47,7 +47,7 @@ namespace Auction_Dbot.Auction_House.Commands
         {
             try
             {
-                await modal.DeferAsync(ephemeral: true);
+                modal.DeferAsync(ephemeral: true);
 
                 var itemCollection = Database.getCollection("Cards");
                 var userCollection = Database.getCollection("Users");
