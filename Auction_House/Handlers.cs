@@ -36,6 +36,7 @@ namespace Auction_Dbot.Auction_House
                     case "profile": await Profile.Execute(command, userCollection); break;
                     case "pool": await Pool.Execute(command, userCollection); break;
                     case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
+                    case "leaderboard": await Leaderboard.Execute(command, userCollection); break;
                     default: break;
                 }
             }
@@ -50,8 +51,8 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
-                
                 //set commands
+                
             }
             catch (Exception exception)
             {
@@ -202,6 +203,9 @@ namespace Auction_Dbot.Auction_House
                     case "withdraw": await Pool.Withdraw(component, userCollection); break;
                     case "tglAuctionHouse": await ChangeSettings.toogleAuctionHouse(component, serverCollection); break;
                     case "setAuctionChannel": await ChangeSettings.setAuctionHouse(component, serverCollection); break;
+                    case "leaderboardButton": await Leaderboard.leaderBoardButtonHandler(component, userCollection); break;
+                    case "leaderBoardNext": await Leaderboard.leaderBoardNextOrPrevButtonHandler(component, userCollection); break;
+                    case "leaderBoardPrev": await Leaderboard.leaderBoardNextOrPrevButtonHandler(component, userCollection); break;
                     default:
                         break;
                 }

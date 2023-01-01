@@ -43,10 +43,10 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             if (float.Parse(itemData.GetValue("rarity").AsDouble.ToString()) != 0.0)
             {
-                rarity = itemData.GetValue("rarity").AsDouble.ToString();
+                rarity = Math.Round(itemData.GetValue("rarity").AsDouble,1).ToString();
                 for (int i = 1; i <= 6; i++)
                 {
-                    if (i == (Math.Floor(Decimal.Parse(rarity))))
+                    if (i == Math.Floor(Decimal.Parse(rarity)))
                     {
                         cardColor = colorarray[i];
                     }

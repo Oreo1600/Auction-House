@@ -23,10 +23,10 @@ namespace Auction_Dbot.Auction_House
             await userCollection.UpdateOneAsync(pinFilter, arrayUpdate);
 
             var usersFilter = Builders<BsonDocument>.Filter.Gt<Int64>("userid", 0);
-            var rateFilter = Database.createUpdateSet("payoutRate", 0.5);
+            var rateFilter = Database.createUpdateSet("payoutRate", 0.1);
             UpdateResult result = await userCollection.UpdateManyAsync(usersFilter, rateFilter);
             
-            Console.WriteLine(result.ModifiedCount+ " user's rates are changed 0.5");
+            Console.WriteLine(result.ModifiedCount+ " user's rates are changed 0.1");
         }
         public static async void MoneyPoolReset()
         {
@@ -53,14 +53,14 @@ namespace Auction_Dbot.Auction_House
         {
             var userCollection = Database.getCollection("Users");
             var usersFilter = Builders<BsonDocument>.Filter.Gt<Int64>("userid", 0);
-            var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 0.2);
+            var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 0.5);
             userCollection.UpdateManyAsync(usersFilter,rateUpdate);
         }
         public static async void IncreaseRate()
         {
             var userCollection = Database.getCollection("Users");
             var usersFilter = Builders<BsonDocument>.Filter.Gt<Int64>("userid", 0);
-            var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 0.2);
+            var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 0.5);
             userCollection.UpdateManyAsync(usersFilter,rateUpdate);
         }
     }

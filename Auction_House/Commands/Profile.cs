@@ -90,7 +90,6 @@ namespace Auction_Dbot.Auction_House.Commands
 
         public static (ComponentBuilder cmp, string desc) createCardProfileEmbed(BsonArray cardList, IMongoCollection<BsonDocument> itemCollection, SocketUser user, int startAT, string cardType, SocketUser interactor)
         {
-            Console.WriteLine(cardList.Count);
             string desc = "";
             var buttons = new ComponentBuilder();
             if (cardList.Count == 0) // if the card list has 0 cards display none
@@ -99,7 +98,6 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             else if (cardList.Count < 10) // if card list has less than 10 cards we wont be adding next button
             {
-                Console.WriteLine(cardList.Count);
                 for (int i = 0; i < cardList.Count; i++)
                 {
                     BsonDocument itemData = Database.getItemData(cardList[i].AsObjectId, itemCollection).Result;

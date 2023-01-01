@@ -34,8 +34,9 @@ namespace Auction_Dbot
                 Database.Connect();
 
                 //Starting an auction
-                auctionTimer = new System.Timers.Timer(10800000);
+                auctionTimer = new System.Timers.Timer(86400000);
                 auctionTimer.Elapsed += new ElapsedEventHandler(Handlers.OnTimedEvent);
+                auctionTimer.Start();
 
                 //Resetting MoneyPool
                 moneyPoolTimer = new System.Timers.Timer(259200000);

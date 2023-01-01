@@ -63,6 +63,7 @@ namespace Auction_Dbot.Auction_House
                 {"cardListOwned", new BsonArray()},
                 {"cash", 1000},
                 {"points",0 },
+                {"isUser",true },
             };
             return collection.InsertOneAsync(newDoc);            
         }
