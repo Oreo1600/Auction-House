@@ -50,6 +50,7 @@ namespace Auction_Dbot
                 gradRateUpgrade.Elapsed += new ElapsedEventHandler(MoneyPool.IncreaseRate);
                 gradRateUpgrade.Start();
 
+                await _client.SetGameAsync("send help but with /");
                 //Handling events
                 _client.Ready += Handlers.Client_Ready;
                 _client.SlashCommandExecuted += Handlers.SlashCommandHandler;
