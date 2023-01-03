@@ -96,7 +96,7 @@ namespace Auction_Dbot.Auction_House.Commands
             {
                 desc = "No cards found!";
             }
-            else if (cardList.Count < 10) // if card list has less than 10 cards we wont be adding next button
+            else if (cardList.Count <= 10) // if card list has less than 10 cards we wont be adding next button
             {
                 for (int i = 0; i < cardList.Count; i++)
                 {

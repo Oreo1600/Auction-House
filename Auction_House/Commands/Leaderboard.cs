@@ -29,14 +29,22 @@ namespace Auction_Dbot.Auction_House.Commands
         }
         public static (ComponentBuilder cmp, string desc) createLeaderBoardEmbed(List<BsonDocument> users,SocketUser interactor, IMongoCollection<BsonDocument> userCollection, int startAT)
         {
-            string desc = "";
+            string desc = "             ┌── •✧• ──┐\n\n";
             var buttons = new ComponentBuilder();
-            if (users.Count < 10) // if card list has less than 10 cards we wont be adding next button
+            int interactorRank = -1;
+            for (int i = 0; i < users.Count; i++)
+            {
+                if (ulong.Parse(users[i].GetValue("userid").AsInt64.ToString()) == interactor.Id)
+                {
+                    interactorRank = i + 1;
+                }
+            }
+            if (users.Count <= 10) // if card list has less than 10 cards we wont be adding next button
             {
                 for (int i = 0; i < users.Count; i++)
                 {
                     SocketUser user = Program._client.GetUser(ulong.Parse(users[i].GetValue("userid").AsInt64.ToString()));
-                    desc = desc + (i + 1) + ". " + user.Mention + " | " + users[i].GetValue("cash").AsInt32 + "🪙\n";
+                    desc = desc + (i + 1) + ". " + user.Username + "#" + user.DiscriminatorValue + "\n ➥ " + users[i].GetValue("cash").AsInt32 + "🪙\n";
                     buttons.WithButton((i + 1).ToString(), "leaderboardButton_" + interactor.Id + "_" + user.Id);
                 }
             }
@@ -49,7 +57,7 @@ namespace Auction_Dbot.Auction_House.Commands
                     try
                     {
                         SocketUser user = Program._client.GetUser(ulong.Parse(users[i].GetValue("userid").AsInt64.ToString()));
-                        desc = desc + (i + 1) + ". " + user.Mention + " | " + users[i].GetValue("cash").AsInt32 + "🪙\n";
+                        desc = desc + (i + 1) + ". " + user.Username + "#" + user.DiscriminatorValue + "\n ➥ " + users[i].GetValue("cash").AsInt32 + "🪙\n";
                         buttons.WithButton((i + 1).ToString(), "leaderboardButton_" + interactor.Id + "_" + user.Id);
                     }
                     catch (Exception e)
@@ -67,6 +75,7 @@ namespace Auction_Dbot.Auction_House.Commands
                     buttons.AddRow(new ActionRowBuilder().WithButton("Next>>", $"leaderBoardNext_{interactor.Id}_{i}"));
                 }
             }
+            desc += "\n             └── •✧• ──┘\nYour rank: #"+ interactorRank;
             return (buttons, desc);
         }
         //leaderboardButton_interactorId_userid
@@ -87,7 +96,7 @@ namespace Auction_Dbot.Auction_House.Commands
             var allUserFilter = Builders<BsonDocument>.Filter.Eq("isUser", true);
             List<BsonDocument> users = await userCollection.Find(allUserFilter).Sort(Builders<BsonDocument>.Sort.Descending("cash")).ToListAsync();
             (ComponentBuilder buttons, string desc) = createLeaderBoardEmbed(users, component.User, userCollection, startAt);
-            if (startAt != 1)
+            if (startAt != 0)
             {
                 buttons.AddRow(new ActionRowBuilder().WithButton("<<Previous", $"leaderBoardPrev_{component.User.Id}_" + (startAt - 10)));
             }
