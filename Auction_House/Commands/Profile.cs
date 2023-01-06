@@ -195,7 +195,14 @@ namespace Auction_Dbot.Auction_House.Commands
             ObjectId itemid = ObjectId.Parse(component.Data.CustomId.Split("_")[2]);
             BsonDocument itemData = Database.getItemData(itemid, itemCollection).Result;
 
-            var embed = Card.createCard(itemData);
+            bool isNsfw = true;
+            if (component.Channel is IDMChannel) { isNsfw = true; }
+            else if (component.Channel is SocketTextChannel)
+            {
+                SocketTextChannel channel = component.Channel as SocketTextChannel;
+                isNsfw = channel.IsNsfw;
+            }
+            var embed = Card.createCard(itemData,isNsfw);
 
             await component.UpdateAsync(x => { x.Embed = embed.Build(); });
         }

@@ -33,8 +33,10 @@ namespace Auction_Dbot
                 await _client.StartAsync();
                 Database.Connect();
 
+                
+
                 //Starting an auction
-                auctionTimer = new System.Timers.Timer(86400000);
+                auctionTimer = new System.Timers.Timer(25200000);
                 auctionTimer.Elapsed += new ElapsedEventHandler(Handlers.OnTimedEvent);
                 auctionTimer.Start();
 
@@ -51,6 +53,7 @@ namespace Auction_Dbot
                 gradRateUpgrade.Start();
 
                 await _client.SetGameAsync("send help. but with /");
+
                 //Handling events
                 _client.Ready += Handlers.Client_Ready;
                 _client.SlashCommandExecuted += Handlers.SlashCommandHandler;
@@ -60,6 +63,9 @@ namespace Auction_Dbot
                 _client.LeftGuild += Handlers.LeftGuildHandlers;
                 _client.SelectMenuExecuted += Handlers.SelectMenuExecutedHandler;
                 _client.ButtonExecuted += Handlers.Buttonhandler;
+
+                var setPingRole = new SlashCommandBuilder().WithName("set_ping_role").WithDescription("The role that bot can ping when an auction appears.").WithDefaultMemberPermissions(GuildPermission.Administrator).AddOption("role", ApplicationCommandOptionType.Role, "The role that bot should ping", true);
+                await _client.CreateGlobalApplicationCommandAsync(setPingRole.Build());
                 Console.WriteLine("Logged in as " + _client.CurrentUser.Username);
 
                 await Task.Delay(-1);

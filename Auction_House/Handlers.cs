@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using NsfwSpyNS;
 using System.Timers;
 
 namespace Auction_Dbot.Auction_House
@@ -100,46 +101,15 @@ namespace Auction_Dbot.Auction_House
         public static async Task MessageRecievedHandler(SocketMessage message)
         {
             var userCollection = Database.getCollection("Users");
+            var itemCollection = Database.getCollection("Cards");
             if (message.Content == "!startauction" && message.Author.Id == 511583052401475604) // temp command
             {
                 var serverCollection = Database.getCollection("Servers");
-                var itemCollection = Database.getCollection("Cards");
                 Task.Run(() => { Auction.Execute(serverCollection, itemCollection, userCollection); });
             }
             try
             {
-                var cardCollection = Database.getCollection("Cards");
-                BsonDocument userData = Database.getUserData((long)message.Author.Id, userCollection).Result;
-                // Checking the photo url and storing it in database
-                if (message.Channel is IDMChannel && userData.GetValue("cardCreationInProgress").AsBoolean)
-                {
-                    if (message.Attachments.Count != 0 && Cache.allowedContentType.Contains(message.Attachments.First().ContentType))
-                    {
-                        var filter = Builders<BsonDocument>.Filter.Eq("_id", userData.GetValue("cardInCompleteId"));
-                        var update = Database.createUpdateSet("photoUrl", message.Attachments.First().Url);
-
-                        var userFilter = Database.getUserFilter((long)message.Author.Id);
-                        var inCompleteUpdate = Database.createUpdateSet("cardCreationInProgress", false);
-                        await cardCollection.UpdateOneAsync(filter, update);
-                        await userCollection.UpdateOneAsync(userFilter, inCompleteUpdate);
-
-                        await message.Author.SendMessageAsync("Successfully added this image to the card media.");
-                    }
-                    if (message.Embeds.Count != 0 && Cache.allowedContentTypeExt.Any(s => message.Embeds.First().Url.EndsWith(s)))
-                    {
-                        var filter = Builders<BsonDocument>.Filter.Eq("_id", userData.GetValue("cardInCompleteId"));
-                        var update = Database.createUpdateSet("photoUrl", message.Attachments.First().Url);
-
-                        var userFilter = Database.getUserFilter((long)message.Author.Id);
-                        var inCompleteUpdate = Database.createUpdateSet("cardCreationInProgress", false);
-                        await cardCollection.UpdateOneAsync(filter, update);
-                        await userCollection.UpdateOneAsync(userFilter, inCompleteUpdate);
-
-                        await message.Author.SendMessageAsync("Successfully added this image to the card media.");
-                    }
-                }
-
-                
+                Task.Run(() => { RegisterImages.Execute(message, itemCollection, userCollection); });
             }
             catch (Exception e)
             {
@@ -226,7 +196,7 @@ namespace Auction_Dbot.Auction_House
 
         public static void OnTimedEvent(object sender, ElapsedEventArgs e)
         {
-            var serverCollection = Database.getCollection("Server");
+            var serverCollection = Database.getCollection("Servers");
             var itemCollection = Database.getCollection("Cards");
             var userCollection = Database.getCollection("Users");
             Task.Run(() => { Auction.Execute(serverCollection, itemCollection, userCollection); });

@@ -14,7 +14,14 @@ namespace Auction_Dbot.Auction_House.Commands
                 if (cmd.Data.Options.First().Value != String.Empty)
                 {
                     BsonDocument itemData = await collection.Find(Database.getItemFilter(cmd.Data.Options.First().Value.ToString().ToLower())).FirstAsync();
-                    var embedBuiler = createCard(itemData);
+                    bool isNsfw = true;
+                    if (cmd.Channel is IDMChannel) { isNsfw= true;}
+                    else if (cmd.Channel is SocketTextChannel)
+                    {
+                        SocketTextChannel channel = cmd.Channel as SocketTextChannel;
+                        isNsfw = channel.IsNsfw;
+                    }                 
+                    var embedBuiler = createCard(itemData,isNsfw); 
                     await cmd.RespondAsync(embed: embedBuiler.Build());
                 }
             }
@@ -27,13 +34,30 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             
         }
-        public static EmbedBuilder createCard(BsonDocument itemData)
+        public static EmbedBuilder createCard(BsonDocument itemData,bool isChannelNsfw = false)
         {
             SocketUser creator = Program._client.GetUser(ulong.Parse(itemData.GetValue("creator").AsInt64.ToString()));
             string creatorMention = creator.Mention;
             string ownerMention = "Not owned";
             string rarity = "Not yet evaluated";
             int price = itemData.GetValue("price").AsInt32;
+            string photourl = "";
+            if (itemData.GetValue("nsfw").AsBoolean)
+            {
+                if (isChannelNsfw)
+                {
+                    photourl = itemData.GetValue("photoUrl").AsString;
+                }
+                else
+                {
+                    photourl = "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png";
+                }
+            }
+            else
+            {
+                photourl = itemData.GetValue("photoUrl").AsString;
+            }
+            /*itemData.GetValue("nsfw").AsBoolean && isChannelNsfw ?  itemData.GetValue("photoUrl").AsString : "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png";*/
             Color cardColor = Color.DarkGrey;
             List<Color> colorarray = new List<Color>() { Color.DarkerGrey, Color.LighterGrey, Color.Blue, Color.Green, Color.Orange, Color.DarkPurple, Color.Red };
             if (itemData.GetValue("owner").AsInt64.ToString() != "0")
@@ -58,10 +82,14 @@ namespace Auction_Dbot.Auction_House.Commands
             {
                 description = description + "\n\n💰 Sold for " + price + "🪙";
             }
+            else if (itemData.GetValue("nsfw").AsBoolean)
+            {
+                description = description + "\n\n🔞 This card contains nsfw image.Therefore, the card image will only appear in nsfw channels.";
+            }
             var embedBuiler = new EmbedBuilder()
             .WithTitle(itemData.GetValue("cardName").AsString)
             .WithDescription(description)
-            .WithImageUrl(itemData.GetValue("photoUrl").AsString)
+            .WithImageUrl(photourl)
             .WithColor(cardColor)
             .WithCurrentTimestamp();
 

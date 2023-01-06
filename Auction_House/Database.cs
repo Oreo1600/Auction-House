@@ -64,6 +64,8 @@ namespace Auction_Dbot.Auction_House
                 {"cash", 1000},
                 {"points",0 },
                 {"isUser",true },
+                {"premium",false },
+                {"premiumDuration",DateTime.Now }
             };
             return collection.InsertOneAsync(newDoc);            
         }
@@ -80,7 +82,9 @@ namespace Auction_Dbot.Auction_House
                     {"mentionRole","@here" },
                     {"inviteLink",defaultguild.CreateInviteAsync(null).Result.Url },
                     {"auctionChannel",(long)defaultguild.Id },
-                    {"isServer",true }
+                    {"isServer",true },
+                    {"premium",false },
+                    {"premiumDuration",DateTime.Now }
                 };
                 
                 return collection.InsertOneAsync(newDoc);

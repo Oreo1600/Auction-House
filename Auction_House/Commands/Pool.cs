@@ -20,8 +20,7 @@ namespace Auction_Dbot.Auction_House.Commands
             double withdrawAmount = Math.Ceiling(poolMoney * payoutRate /100);
             
             DateTime resetIn = pool.GetValue("resetTime").AsDateTime;
-            TimestampTag resetTimeStamp = new TimestampTag { Time = resetIn, Style = TimestampTagStyles.Relative };
-     
+            TimestampTag resetTimeStamp = new TimestampTag(resetIn, TimestampTagStyles.Relative);
             BsonArray recentWithdraws = pool.GetValue("recentWithdraws").AsBsonArray;
             string text = $"Money Pool: {poolMoney}🪙\nYour Payout Rate: {Math.Round(payoutRate, 2)}%\n\nYou can currently withdraw {withdrawAmount}🪙.\n\nMoney Pool resets in {resetTimeStamp}\n\n"+ (recentWithdraws.Count != 0 ? "Recent Withdraws:\n" : "");
 
@@ -69,8 +68,8 @@ namespace Auction_Dbot.Auction_House.Commands
             var userRateUpdate = Database.createUpdateSet("payoutRate", 0.0);
             var poolMoneyUpdate = Builders<BsonDocument>.Update.Set("moneyPool", poolAmount - int.Parse(payoutCash.ToString()));
 
-            TimestampTag tag = new TimestampTag() { Time = DateTime.Now, Style = TimestampTagStyles.ShortDateTime };
-            var withdrawpushUpdate = Builders<BsonDocument>.Update.Push("recentWithdraws", $"{component.User.Mention} withdrew **{payoutCash}** from the moneypool.  | {tag}");
+            TimestampTag tag = new TimestampTag(DateTime.Now, TimestampTagStyles.ShortDateTime);
+            var withdrawpushUpdate = Builders<BsonDocument>.Update.Push("recentWithdraws", $"{component.User.Mention} withdrew **{payoutCash}**🪙 from the moneypool.  | {tag}");
             await userCollection.UpdateOneAsync(pinFilter, poolMoneyUpdate);
             await userCollection.UpdateOneAsync(pinFilter, withdrawpushUpdate);
             await userCollection.UpdateOneAsync(userFilter,userCashUpdate);

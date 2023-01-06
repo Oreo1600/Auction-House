@@ -19,6 +19,7 @@ namespace Auction_Dbot.Auction_House
             {
                 // This code executes when the timer event is fired
                 Random r = new Random();
+                Program.auctionTimer.Interval = r.NextInt64(25200000, 36000000);
                 var auctionCollection = Database.getCollection("Auctions");
                 var pinnedFilter = Database.getPinFilter();
                 BsonDocument pinnedDoc = await auctionCollection.Find(pinnedFilter).FirstAsync();
@@ -72,20 +73,21 @@ namespace Auction_Dbot.Auction_House
 
                 SocketTextChannel channel = Program._client.GetChannel(ulong.Parse(house.GetValue("auctionChannel").AsInt64.ToString())) as SocketTextChannel;
 
-                var embed = Card.createCard(item);
+                var embed = Card.createCard(item,channel.IsNsfw);
 
+                string pingRole = house.GetValue("mentionRole").AsString;
                 // sending the message
-                TimestampTag timestamp = new() { Time = DateTime.Now.AddMilliseconds(600000), Style = TimestampTagStyles.Relative };
+                TimestampTag timestamp = new(DateTime.Now.AddMilliseconds(600000), TimestampTagStyles.Relative);
                 SocketTextChannel auctionChannel = Program._client.GetChannel(1056956035849535508) as SocketTextChannel;
-                await auctionChannel.SendMessageAsync($"@here\n**New Auction**\n\nAuction House: {channel.Guild.Name}\nInvite Link: <{channel.CreateInviteAsync(3600).Result.Url}>\n\nAuction Starts {timestamp}\n\nAuction Card:", embed: embed.Build());
-                RestUserMessage message = await channel.SendMessageAsync("@here\n🔴This server is selected as the Auction House for the following card.🔴\nThe auction will start " + timestamp.ToString(), embed: embed.Build());
+                await auctionChannel.SendMessageAsync($"{pingRole}\n**New Auction**\n\nAuction House: {channel.Guild.Name}\nInvite Link: <{channel.CreateInviteAsync(3600).Result.Url}>\n\nAuction Starts {timestamp}\n\nAuction Card:", embed: embed.Build());
+                RestUserMessage message = await channel.SendMessageAsync($"{pingRole}\n🔴This server is selected as the Auction House for the following card.🔴\nThe auction will start " + timestamp.ToString(), embed: embed.Build());
 
                 var auctionFilter = Builders<BsonDocument>.Filter.Eq("auctionId", auctionid);
 
                 Thread.Sleep(600000);
                 // after the perticular duration the auction will start
-                TimestampTag endtimestamp = new() { Time = DateTime.Now.AddMilliseconds(1800000), Style = TimestampTagStyles.Relative };
-                RestUserMessage Endmessage = await channel.SendMessageAsync("**The auction is ending **" + endtimestamp.ToString());
+                TimestampTag endtimestamp = new(DateTime.Now.AddMilliseconds(1800000), TimestampTagStyles.Relative);
+                RestUserMessage Endmessage = await channel.SendMessageAsync($"{pingRole}\n**The auction is ending **" + endtimestamp.ToString());
 
                 await processAuction(message, Endmessage, auctionid, item, auctionFilter, auctionCollection, userCollection, itemCollection, embed);
             }
@@ -136,7 +138,7 @@ namespace Auction_Dbot.Auction_House
                 IUser winner = Program._client.GetUserAsync(ulong.Parse(winnerUserId.ToString())).Result;
                 IUser creator = Program._client.GetUserAsync(ulong.Parse(creatorUserId.ToString())).Result;
         
-                await message.ModifyAsync(message => { message.Content = $"@here\nCongrats to {winner.Mention} for winning this auction.\nThe highest bid was {endBid}🪙"; message.Components = null;});
+                await message.ModifyAsync(message => { message.Content = $"Congrats to {winner.Mention} for winning this auction.\nThe highest bid was {endBid}🪙"; message.Components = null;});
                 
                 //item updates
                 var itemownerUpdate = Database.createUpdateSet("owner", winnerUserId);

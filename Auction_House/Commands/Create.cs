@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using ProfanityFilter;
 
 namespace Auction_Dbot.Auction_House.Commands
 {
@@ -48,23 +49,31 @@ namespace Auction_Dbot.Auction_House.Commands
             try
             {
                 modal.DeferAsync(ephemeral: true);
+                List<SocketMessageComponentData> components = modal.Data.Components.ToList();
+                string cardName = components.First(x => x.CustomId == "CardName").Value;
+                string cardDesc = components.First(x => x.CustomId == "CardDesc").Value;
+                var nameProfanityFilter = new ProfanityFilter.ProfanityFilter();
+                if (nameProfanityFilter.ContainsProfanity(cardName))
+                {
+                    await modal.FollowupAsync("🔞The card name contains (a) profanity word(s) therefore it cannot be accepted.", ephemeral: true);
+                    return; 
+                }
+                var descProfanityFilter = new ProfanityFilter.ProfanityFilter();
+                string newDesc = descProfanityFilter.CensorString(cardDesc,'#');
 
                 var itemCollection = Database.getCollection("Cards");
                 var userCollection = Database.getCollection("Users");
 
-                List<SocketMessageComponentData> components = modal.Data.Components.ToList();
-                string cardName = components.First(x => x.CustomId == "CardName").Value;
 
                 var itemfilter = Database.getItemFilter(cardName.ToLower());
                 var userfilter = Database.getUserFilter((long)modal.User.Id);
 
                 if (itemCollection.Find(itemfilter).CountDocumentsAsync().Result > 0)
                 {
-                    await modal.FollowupAsync("There is already a card with this name.", ephemeral: true);
+                    await modal.FollowupAsync("🚫There is already a card with this name.🚫", ephemeral: true);
                     return;
                 }
 
-                string cardDesc = components.First(x => x.CustomId == "CardDesc").Value;
 
                 var isPinnedFilter = Builders<BsonDocument>.Filter.Eq("isPinned", true);
                 BsonDocument itemPinned = await itemCollection.Find(isPinnedFilter).FirstAsync();
@@ -74,7 +83,7 @@ namespace Auction_Dbot.Auction_House.Commands
                     {"cardRank", itemPinned.GetValue("cardRank").AsInt32},
                     {"cardName",cardName.Trim()},
                     {"cardNameLower",cardName.ToLower().Trim()},
-                    {"cardDesc",cardDesc},
+                    {"cardDesc",newDesc},
                     {"photoUrl","" },
                     {"price",0 },
                     {"auctionId",0},
@@ -82,7 +91,8 @@ namespace Auction_Dbot.Auction_House.Commands
                     {"creator",(long)modal.User.Id },
                     {"owner",(long)0 },
                     {"rarity",(double)0.0 },
-                    {"reviews",new BsonArray() }
+                    {"reviews",new BsonArray() },
+                    {"nsfw",false }
                 };
 
                 await itemCollection.InsertOneAsync(newDoc);
