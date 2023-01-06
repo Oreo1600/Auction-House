@@ -38,6 +38,7 @@ namespace Auction_Dbot.Auction_House
                     case "pool": await Pool.Execute(command, userCollection); break;
                     case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
                     case "leaderboard": await Leaderboard.Execute(command, userCollection); break;
+                    case "set_ping_role": await SetRolePing.Execute(command, serverCollection); break;
                     default: break;
                 }
             }
