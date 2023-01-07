@@ -96,7 +96,7 @@ namespace Auction_Dbot.Auction_House.Commands
 
                 await itemCollection.InsertOneAsync(newDoc);
 
-                BsonDocument newItem = Database.getItemData(cardName, itemCollection).Result;
+                BsonDocument newItem = await Database.getItemData(cardName, itemCollection);
 
                 var cardRankIncreased = Builders<BsonDocument>.Update.Inc("cardRank", 1);
                 await itemCollection.UpdateOneAsync(isPinnedFilter, cardRankIncreased);
