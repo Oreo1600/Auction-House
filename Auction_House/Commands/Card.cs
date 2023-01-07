@@ -41,7 +41,7 @@ namespace Auction_Dbot.Auction_House.Commands
             string ownerMention = "Not owned";
             string rarity = "Not yet evaluated";
             int price = itemData.GetValue("price").AsInt32;
-            string photourl = itemData.GetValue("nsfw").AsBoolean && !isChannelNsfw ? "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png" : itemData.GetValue("photourl").AsString;
+            string photourl = itemData.GetValue("nsfw").AsBoolean && !isChannelNsfw ? "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png" : itemData.GetValue("photoUrl").AsString;
             var descProfanityFilter = new ProfanityFilter.ProfanityFilter();
             string cardDescOriginal = itemData.GetValue("cardDesc").AsString;
             string cardDesc = descProfanityFilter.ContainsProfanity(cardDescOriginal) && !isChannelNsfw ? descProfanityFilter.CensorString(cardDescOriginal, '█') : cardDescOriginal;
