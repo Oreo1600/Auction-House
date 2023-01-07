@@ -192,7 +192,14 @@ namespace Auction_Dbot.Auction_House
         {
             var itemCollection = Database.getCollection("Cards");
             var userCollection = Database.getCollection("Users");
-            await Rate.SelectMenu(component,itemCollection,userCollection);
+            if (component.Data.CustomId.StartsWith("nsfwMenu"))
+            {
+                await RegisterImages.SelectMenu(component, itemCollection, userCollection);
+            }
+            else if(component.Data.CustomId.StartsWith("rateMenu"))
+            {
+                await Rate.SelectMenu(component,itemCollection,userCollection);
+            }
         }
 
         public static void OnTimedEvent(object sender, ElapsedEventArgs e)

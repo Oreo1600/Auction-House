@@ -33,7 +33,7 @@ namespace Auction_Dbot.Auction_House.Commands
             var embedBuilder = Card.createCard(itemData,isNsfw);
             var menuBuilder = new SelectMenuBuilder()
             .WithPlaceholder("Select an option")
-            .WithCustomId($"{itemData.GetValue("cardName")}_{cmd.User.Id}")
+            .WithCustomId($"rateMenu_{itemData.GetValue("cardName")}_{cmd.User.Id}")
             .WithMinValues(1)
             .WithMaxValues(1)
             .AddOption("1 ⭐", "1", "Meh")
@@ -50,17 +50,17 @@ namespace Auction_Dbot.Auction_House.Commands
 
         public static async Task SelectMenu(SocketMessageComponent component, IMongoCollection<BsonDocument> collection, IMongoCollection<BsonDocument> userCollection)
         {
-            if (ulong.Parse(component.Data.CustomId.Split("_")[1]) != component.User.Id)
+            if (ulong.Parse(component.Data.CustomId.Split("_")[2]) != component.User.Id)
             {
                 await component.RespondAsync("You cannot interact with this menu",ephemeral:true);
                 return;
             }
-            BsonDocument itemData = Database.getItemData(component.Data.CustomId.Split("_")[0], collection).Result;
+            BsonDocument itemData = Database.getItemData(component.Data.CustomId.Split("_")[1], collection).Result;
             BsonArray ratings = itemData.GetValue("reviews").AsBsonArray;
 
             ratings = ratings.Add(int.Parse(component.Data.Values.First()));
             var pushUpdate = Builders<BsonDocument>.Update.Set("reviews", ratings);
-            var filter = Database.getItemFilter(component.Data.CustomId.Split("_")[0]);
+            var filter = Database.getItemFilter(component.Data.CustomId.Split("_")[1]);
 
             if (ratings.Count > 4)
             {
