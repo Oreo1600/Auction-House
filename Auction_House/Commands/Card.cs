@@ -15,13 +15,13 @@ namespace Auction_Dbot.Auction_House.Commands
                 {
                     BsonDocument itemData = await collection.Find(Database.getItemFilter(cmd.Data.Options.First().Value.ToString().ToLower())).FirstAsync();
                     bool isNsfw = true;
-                    if (cmd.Channel is IDMChannel) { isNsfw= true;}
+                    if (cmd.Channel is IDMChannel) { isNsfw= false;}
                     else if (cmd.Channel is SocketTextChannel)
                     {
                         SocketTextChannel channel = cmd.Channel as SocketTextChannel;
                         isNsfw = channel.IsNsfw;
                     }                 
-                    var embedBuiler = createCard(itemData,isNsfw); 
+                    var embedBuiler = createCard(itemData,isNsfw);
                     await cmd.RespondAsync(embed: embedBuiler.Build());
                 }
             }
@@ -41,23 +41,11 @@ namespace Auction_Dbot.Auction_House.Commands
             string ownerMention = "Not owned";
             string rarity = "Not yet evaluated";
             int price = itemData.GetValue("price").AsInt32;
-            string photourl = "";
-            if (itemData.GetValue("nsfw").AsBoolean)
-            {
-                if (isChannelNsfw)
-                {
-                    photourl = itemData.GetValue("photoUrl").AsString;
-                }
-                else
-                {
-                    photourl = "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png";
-                }
-            }
-            else
-            {
-                photourl = itemData.GetValue("photoUrl").AsString;
-            }
-            /*itemData.GetValue("nsfw").AsBoolean && isChannelNsfw ?  itemData.GetValue("photoUrl").AsString : "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png";*/
+            string photourl = itemData.GetValue("nsfw").AsBoolean && !isChannelNsfw ? "https://cdn.discordapp.com/attachments/1047465714086334474/1060948087268450444/fetchimage.png" : itemData.GetValue("photourl").AsString;
+            var descProfanityFilter = new ProfanityFilter.ProfanityFilter();
+            string cardDescOriginal = itemData.GetValue("cardDesc").AsString;
+            string cardDesc = descProfanityFilter.ContainsProfanity(cardDescOriginal) && !isChannelNsfw ? descProfanityFilter.CensorString(cardDescOriginal, '█') : cardDescOriginal;
+                      
             Color cardColor = Color.DarkGrey;
             List<Color> colorarray = new List<Color>() { Color.DarkerGrey, Color.LighterGrey, Color.Blue, Color.Green, Color.Orange, Color.DarkPurple, Color.Red };
             if (itemData.GetValue("owner").AsInt64.ToString() != "0")
@@ -77,7 +65,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 }
                 rarity += "⭐";
             }
-            string description = $"{itemData.GetValue("cardDesc").AsString}\n\n👤 Creator: {creatorMention}\n\n🤴 Owner:{ownerMention}\n\n💫 Rarity: {rarity}";
+            string description = $"{cardDesc}\n\n👤 Creator: {creatorMention}\n\n🤴 Owner:{ownerMention}\n\n💫 Rarity: {rarity}";
             if (price != 0)
             {
                 description = description + "\n\n💰 Sold for " + price + "🪙";

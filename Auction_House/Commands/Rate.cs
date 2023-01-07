@@ -23,8 +23,14 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             int r = new Random().Next(0, list.Count - 1);
             BsonDocument itemData = list[r];
-
-            var embedBuilder = Card.createCard(itemData);
+            bool isNsfw = true;
+            if (cmd.Channel is IDMChannel) { isNsfw = false; }
+            else if (cmd.Channel is SocketTextChannel)
+            {
+                SocketTextChannel channel = cmd.Channel as SocketTextChannel;
+                isNsfw = channel.IsNsfw;
+            }
+            var embedBuilder = Card.createCard(itemData,isNsfw);
             var menuBuilder = new SelectMenuBuilder()
             .WithPlaceholder("Select an option")
             .WithCustomId($"{itemData.GetValue("cardName")}_{cmd.User.Id}")

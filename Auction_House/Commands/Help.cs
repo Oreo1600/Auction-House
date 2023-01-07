@@ -22,6 +22,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 "\n`/profile` - See your profile including all the cards you have created or owned" +
                 "\n`/leaderboard` - See global leaderboard" +
                 "\n`/server_settings` - Edit server settings (admin only)" +
+                "\n`/set_ping_role` - Set a role that bot should ping when an auction appear in the server (admin only)" +
                 "\n`/help` - Know how to use the bot" +
                 "\n\nJoin the support server: https://discord.gg/4ENS22mNxx";
             var embedBuiler = new EmbedBuilder()

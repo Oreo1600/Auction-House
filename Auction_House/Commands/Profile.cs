@@ -196,7 +196,7 @@ namespace Auction_Dbot.Auction_House.Commands
             BsonDocument itemData = Database.getItemData(itemid, itemCollection).Result;
 
             bool isNsfw = true;
-            if (component.Channel is IDMChannel) { isNsfw = true; }
+            if (component.Channel is IDMChannel) { isNsfw = false; }
             else if (component.Channel is SocketTextChannel)
             {
                 SocketTextChannel channel = component.Channel as SocketTextChannel;

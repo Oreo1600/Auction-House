@@ -53,8 +53,8 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
-                //set commands
-                
+                await Program._client.SetGameAsync("send help. but with /");
+                Console.WriteLine("Logged in as " + Program._client.CurrentUser.Username);
             }
             catch (Exception exception)
             {

@@ -58,8 +58,7 @@ namespace Auction_Dbot.Auction_House.Commands
                     await modal.FollowupAsync("🔞The card name contains (a) profanity word(s) therefore it cannot be accepted.", ephemeral: true);
                     return; 
                 }
-                var descProfanityFilter = new ProfanityFilter.ProfanityFilter();
-                string newDesc = descProfanityFilter.CensorString(cardDesc,'#');
+                
 
                 var itemCollection = Database.getCollection("Cards");
                 var userCollection = Database.getCollection("Users");
@@ -83,7 +82,7 @@ namespace Auction_Dbot.Auction_House.Commands
                     {"cardRank", itemPinned.GetValue("cardRank").AsInt32},
                     {"cardName",cardName.Trim()},
                     {"cardNameLower",cardName.ToLower().Trim()},
-                    {"cardDesc",newDesc},
+                    {"cardDesc",cardDesc},
                     {"photoUrl","" },
                     {"price",0 },
                     {"auctionId",0},

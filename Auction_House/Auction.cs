@@ -79,7 +79,7 @@ namespace Auction_Dbot.Auction_House
                 // sending the message
                 TimestampTag timestamp = new(DateTime.Now.AddMilliseconds(600000), TimestampTagStyles.Relative);
                 SocketTextChannel auctionChannel = Program._client.GetChannel(1056956035849535508) as SocketTextChannel;
-                await auctionChannel.SendMessageAsync($"{pingRole}\n**New Auction**\n\nAuction House: {channel.Guild.Name}\nInvite Link: <{channel.CreateInviteAsync(3600).Result.Url}>\n\nAuction Starts {timestamp}\n\nAuction Card:", embed: embed.Build());
+                await auctionChannel.SendMessageAsync($"{pingRole}\n🏦**New Auction**🏦\n\n🏠Auction House: {channel.Guild.Name}\n🔗Invite Link: <{channel.CreateInviteAsync(3600).Result.Url}>\n\n❗️Auction Starts/Ended {timestamp}\n\n🃏Auction Card:", embed: embed.Build());
                 RestUserMessage message = await channel.SendMessageAsync($"{pingRole}\n🔴This server is selected as the Auction House for the following card.🔴\nThe auction will start " + timestamp.ToString(), embed: embed.Build());
 
                 var auctionFilter = Builders<BsonDocument>.Filter.Eq("auctionId", auctionid);
@@ -87,7 +87,7 @@ namespace Auction_Dbot.Auction_House
                 Thread.Sleep(600000);
                 // after the perticular duration the auction will start
                 TimestampTag endtimestamp = new(DateTime.Now.AddMilliseconds(1800000), TimestampTagStyles.Relative);
-                RestUserMessage Endmessage = await channel.SendMessageAsync($"{pingRole}\n**The auction is ending **" + endtimestamp.ToString());
+                RestUserMessage Endmessage = await channel.SendMessageAsync($"{pingRole}\n❗️**The auction is ending **" + endtimestamp.ToString() + "❕");
 
                 await processAuction(message, Endmessage, auctionid, item, auctionFilter, auctionCollection, userCollection, itemCollection, embed);
             }
@@ -101,7 +101,7 @@ namespace Auction_Dbot.Auction_House
             try
             {
                 ComponentBuilder button = new ComponentBuilder().WithButton("Bid", "bidButton_" + auctionId);
-                await message.ModifyAsync(message => { message.Content = "Now, commencing the auction for this following card.\n**Click on Bid buttom below**, if you wish to bid for this card.\nBidding Amount: 0🪙"; message.Components = button.Build(); });
+                await message.ModifyAsync(message => { message.Content = "Now, commencing the auction for this following card.\n**Click on Bid buttom below**, if you wish to bid for this card.\nBidding Amount: 0🪙"; message.Components = button.Build(); });             
                 // after this the Bid Model handles the auction and the thread is put to sleep until the auction is over
                 Thread.Sleep(1800000);
                 //the auction must be set inactive so no bid can be accepted after this
