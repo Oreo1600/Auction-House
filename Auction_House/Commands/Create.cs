@@ -119,7 +119,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 0.2);
                 await userCollection.UpdateOneAsync(userfilter, rateUpdate);
 
-                await modal.User.SendMessageAsync($"Your card's photo is missing!\nCard Name: {cardName} \nCard Description: {cardDesc}\nYou may send an image here after this message. Note: You cannot change your photo.");
+                await modal.User.SendMessageAsync($"Your card's photo is missing!\nCard Name: {cardName} \nCard Description: {cardDesc}\nYou may send an image here after this message. Note: You cannot change your photo.\nIf the bot doesn't reply for few seconds after submitting image, please reupload.");
 
                 await modal.FollowupAsync("Successfully created card!\nYou have earned 500🪙.\nYour Payout rate is increased by 0.2%", ephemeral:true);
             }

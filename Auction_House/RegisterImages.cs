@@ -23,15 +23,26 @@ namespace Auction_Dbot.Auction_House
                 {
                     var filter = Builders<BsonDocument>.Filter.Eq("_id", userData.GetValue("cardInCompleteId"));
                     var update = Database.createUpdateSet("photoUrl", message.Attachments.First().Url);
-                    var nsfwImagedetector = new NsfwSpy();
-                    var uri = new Uri(message.Attachments.First().Url);
-                    var result = nsfwImagedetector.ClassifyImage(uri);
-                    bool isImageNsfw = (result.Sexy + result.Hentai + result.Pornography) > 0.992000 ? true : false;
-                    if (isImageNsfw)
+                    try
                     {
-                        var nsfwUpdate = Database.createUpdateSet("nsfw", true);
-                        await cardCollection.UpdateOneAsync(filter, nsfwUpdate);
+                        var nsfwImagedetector = new NsfwSpy();
+                        var uri = new Uri(message.Attachments.First().Url);
+                        var result = nsfwImagedetector.ClassifyImage(uri);
+                        float resultFloat = result.Sexy + result.Hentai + result.Pornography;
+                        bool isImageNsfw = resultFloat > 0.992000 ? true : false;
+                        Console.WriteLine(resultFloat);
+                        Console.WriteLine(isImageNsfw);
+                        if (isImageNsfw)
+                        {
+                            var nsfwUpdate = Database.createUpdateSet("nsfw", true);
+                            await cardCollection.UpdateOneAsync(filter, nsfwUpdate);
+                        }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message + e.StackTrace);
+                    }
+                    
                     var userFilter = Database.getUserFilter((long)message.Author.Id);
                     var inCompleteUpdate = Database.createUpdateSet("cardCreationInProgress", false);
                     await cardCollection.UpdateOneAsync(filter, update);
