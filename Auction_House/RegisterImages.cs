@@ -25,7 +25,9 @@ namespace Auction_Dbot.Auction_House
                     var update = Database.createUpdateSet("photoUrl", message.Attachments.First().Url);
                     var nsfwImagedetector = new NsfwSpy();
                     var uri = new Uri(message.Attachments.First().Url);
-                    if (nsfwImagedetector.ClassifyImage(uri).IsNsfw)
+                    var result = nsfwImagedetector.ClassifyImage(uri);
+                    bool isImageNsfw = (result.Sexy + result.Hentai + result.Pornography) > 0.992000 ? true : false;
+                    if (isImageNsfw)
                     {
                         var nsfwUpdate = Database.createUpdateSet("nsfw", true);
                         await cardCollection.UpdateOneAsync(filter, nsfwUpdate);

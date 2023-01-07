@@ -26,14 +26,15 @@ namespace Auction_Dbot.Auction_House.Commands
                 "\n`/server_settings` - Edit server settings (admin only)" +
                 "\n`/set_ping_role` - Set a role that bot should ping when an auction appear in the server (admin only)" +
                 "\n`/help` - Know how to use the bot" +
-                "\n\nJoin the support server: https://discord.gg/4ENS22mNxx";
+                "\n\nJoin the support server: https://discord.gg/4ENS22mNxx" +
+                "\n\nif you find any images that are explicit and not marked as nsfw or if your card image is marked as nsfw but you think its not, please contact the support server.";
             var embedBuiler = new EmbedBuilder()
                 .WithAuthor(cmd.User.Username+"#" + cmd.User.DiscriminatorValue)
                 .WithTitle("Help")
                 .WithDescription(help)
                 .WithColor(Color.Green)
                 .WithCurrentTimestamp();
-            cmd.RespondAsync(ephemeral:true,embed:embedBuiler.Build());
+            cmd.RespondAsync(embed:embedBuiler.Build());
             return Task.CompletedTask;
         }
     }
