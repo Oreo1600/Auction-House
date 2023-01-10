@@ -91,10 +91,14 @@ namespace Auction_Dbot.Auction_House
             }
             catch (Exception e)
             {
+                if (e.Message == "One or more errors occurred. (The server responded with error 50013: Missing Permissions)")
+                {
+                    guild.Owner.SendMessageAsync($"I lack permission in your server {guild.Name}. Please reinvite the bot and make sure that all necessary permissions are checked.");
+                    return Task.CompletedTask;
+                }
                 Console.WriteLine(e.Message);
-                throw;
+                return Task.CompletedTask;
             }
-
         }
 
         public static async Task CheckAndAddServer(SocketGuild guild, IMongoCollection<BsonDocument> serverCollection)

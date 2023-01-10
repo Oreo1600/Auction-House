@@ -166,7 +166,7 @@ namespace Auction_Dbot.Auction_House
                 else
                 {
                     creatorCut = (endBid * 70) / 100;
-                    ownerMessage = $"Your following item has recently been sold for ${endBid}🪙 in a recent auction.\n70% of that cash has been credited to your account.\nAdded Cash: {creatorCut}🪙\n\nWondering where the 30% go? See the /help.";
+                    ownerMessage = $"Your following item has recently been sold for {endBid}🪙 in a recent auction.\n70% of that cash has been credited to your account.\nAdded Cash: {creatorCut}🪙\n\nWondering where the 30% go? See the /help.";
                 }
 
                 //user updates

@@ -17,15 +17,15 @@ namespace Auction_Dbot.Auction_House.Commands
                 " Once a pool resets your payout rate also resets. Payout rate increases 0.5% every hour; it can be increased further by creating or rating cards.\nCreating a card increases your payout rate by **0.2%** and rating a card increases your payout rate by **0.05%**." +
                 "\n\nEnjoy the Auction House!" +
                 "\n\n**Commands**" +
-                "\n`/create` - Create a card" +
-                "\n`/card` - Search for a card" +
-                "\n`/rate` - decide rarity of a random card" +
-                "\n`/pool` - Withdraw cash from Money Pool" +
-                "\n`/profile` - See your profile including all the cards you have created or owned" +
-                "\n`/leaderboard` - See global leaderboard" +
-                "\n`/server_settings` - Edit server settings (admin only)" +
-                "\n`/set_ping_role` - Set a role that bot should ping when an auction appear in the server (admin only)" +
-                "\n`/help` - Know how to use the bot" +
+                "\n</create:1049238076578344971> - Create a card" +
+                "\n</card:1049238079011029023> - Search for a card" +
+                "\n</rate:1049238081783468094> - decide rarity of a random card" +
+                "\n</pool:1054057929646546974> - Withdraw cash from Money Pool" +
+                "\n</profile:1049238083947728906> - See your profile including all the cards you have created or owned" +
+                "\n</leaderboard:1059005652363640884> - See global leaderboard" +
+                "\n</server_settings:1056986959509200946> - Edit server settings (admin only)" +
+                "\n</set_ping_role:1061006721688027236> - Set a role that bot should ping when an auction appear in the server (admin only)" +
+                "\n</help:1049238073910763521> - Know how to use the bot" +
                 "\n\nJoin the support server: https://discord.gg/4ENS22mNxx" +
                 "\n\nif you find any images that are explicit and not marked as nsfw, please report to the support server.";
             var embedBuiler = new EmbedBuilder()

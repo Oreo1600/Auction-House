@@ -86,6 +86,8 @@ namespace Auction_Dbot.Auction_House
 
             await collection.UpdateOneAsync(filter, updatePush);
             await collection.UpdateOneAsync(filter, updateInc);
+            var embed = new EmbedBuilder().WithTitle("Greetings,").WithDescription("Thanks for adding me to the server. Send </help:1049238073910763521> to know how to use me and list of all commands as well.\nHave fun.");
+            await guild.DefaultChannel.SendMessageAsync(embed: embed.Build());
         }
         public static async Task LeftGuildHandlers(SocketGuild guild)
         {
