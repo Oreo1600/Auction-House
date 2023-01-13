@@ -50,6 +50,7 @@ namespace Auction_Dbot.Auction_House
             {
                 {"userid",(long)socketuser.Id },
                 {"name",socketuser.Username + "#" + socketuser.DiscriminatorValue.ToString() },
+                {"userPfp", socketuser.GetAvatarUrl()},
                 {"cardCreationInProgress",false },
                 {"cardInCompleteId",new ObjectId() },
                 {"totalCreateCardToday",0 },
@@ -63,6 +64,7 @@ namespace Auction_Dbot.Auction_House
                 {"cardListOwned", new BsonArray()},
                 {"cash", 1000},
                 {"points",0 },
+                {"voteTimer",DateTime.Now.AddHours(13) },
                 {"isUser",true },
                 {"premium",false },
                 {"premiumDuration",DateTime.Now }
@@ -106,16 +108,23 @@ namespace Auction_Dbot.Auction_House
            
             if (!Cache.serverList.Contains(guild.Id))
             {
+                
                 Cache.serverList.Add(guild.Id);
                 if (!IsDocExistsAsync(serverCollection, (long)guild.Id).Result)
                 {
+                    Console.WriteLine($"{guild.Name} is added to the database.");
                     var serverSettings = new SlashCommandBuilder();
                     serverSettings.WithName("server_settings");
                     serverSettings.WithDescription("Change/See server settings");
                     serverSettings.WithDefaultMemberPermissions(GuildPermission.Administrator);
 
                     SocketApplicationCommand cmd = await guild.CreateApplicationCommandAsync(serverSettings.Build());
+                    Console.WriteLine("Application command created for " + guild.Name);
                     await AddServer(Program._client.GetGuild(guild.Id), serverCollection);
+                }
+                else
+                {
+                    Console.WriteLine($"{guild.Name} already exist.");
                 }
             }
         }

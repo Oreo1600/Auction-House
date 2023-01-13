@@ -1,12 +1,8 @@
 ﻿using Auction_Dbot.Auction_House.Commands;
 using Discord;
-using Discord.Interactions;
-using Discord.Net;
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using NsfwSpyNS;
 using System.Timers;
 
 namespace Auction_Dbot.Auction_House
@@ -23,7 +19,8 @@ namespace Auction_Dbot.Auction_House
 
                 if (command.Channel is not IDMChannel)
                 {
-                    await Database.CheckAndAddServer(Program._client.GetGuild(command.GuildId.Value), serverCollection);
+                    Task.Run(() => { Database.CheckAndAddServer(Program._client.GetGuild(command.GuildId.Value), serverCollection); });
+                    
                 }
                 await Database.CheckAndAddUser(command.User, userCollection);
 
@@ -32,13 +29,14 @@ namespace Auction_Dbot.Auction_House
                 {
                     case "help": await Help.Execute(command); break;
                     case "create": await Create.Execute(command, userCollection); break;
-                    case "card": await Card.Execute(command, itemCollection); break;
-                    case "rate": await Rate.Execute(command, itemCollection); break;
+                    case "card": await Card.Execute(command, itemCollection,userCollection); break;
+                    case "rate": await Rate.Execute(command,userCollection, itemCollection); break;
                     case "profile": await Profile.Execute(command, userCollection); break;
                     case "pool": await Pool.Execute(command, userCollection); break;
                     case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
                     case "leaderboard": await Leaderboard.Execute(command, userCollection); break;
                     case "set_ping_role": await SetRolePing.Execute(command, serverCollection); break;
+                    case "vote": await Vote.Execute(command, userCollection); break;
                     default: break;
                 }
             }
@@ -53,6 +51,9 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
+                var voteCmd = new SlashCommandBuilder().WithName("vote").WithDescription("Vote auction house on top.gg and get rewards");
+                await Program._client.CreateGlobalApplicationCommandAsync(voteCmd.Build());
+                Console.WriteLine("Vote command is added");
                 await Program._client.SetGameAsync("send help. but with /");
                 Console.WriteLine("Logged in as " + Program._client.CurrentUser.Username);
             }
@@ -86,6 +87,8 @@ namespace Auction_Dbot.Auction_House
 
             await collection.UpdateOneAsync(filter, updatePush);
             await collection.UpdateOneAsync(filter, updateInc);
+
+            await Database.CheckAndAddServer(guild, collection);
             var embed = new EmbedBuilder().WithTitle("Greetings,").WithDescription("Thanks for adding me to the server. Send </help:1049238073910763521> to know how to use me and list of all commands as well.\nHave fun.");
             await guild.DefaultChannel.SendMessageAsync(embed: embed.Build());
         }
@@ -116,20 +119,7 @@ namespace Auction_Dbot.Auction_House
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                /*if (e.Message == "One or more errors occurred. (Sequence contains no elements)")
-                {
-                    Console.Write("");
-                }*/
-                /*if (!Cache.userList.Contains(message.Author.Id))
-                {
-                    Cache.userList.Add(message.Author.Id);
-                    if (!Database.IsDocExistsAsync(userCollection, (long)message.Author.Id).Result)
-                    {
-                        await Database.AddUser(message.Author, userCollection);
-                    }
-                }
-                throw;*/
+                Console.WriteLine(e.Message);                
             }
         }
 
@@ -160,7 +150,7 @@ namespace Auction_Dbot.Auction_House
                         _ = Task.Run(() => { Profile.ownedCards(component, userCollection, itemCollection); });
                         break;
                     case "create": _ = Task.Run(() => { Profile.createdCards(component, userCollection, itemCollection); });  break;
-                    case "cardButton": await Profile.cardButtonClicked(component, itemCollection); break;
+                    case "cardButton": _ = Task.Run(() => { Profile.cardButtonClicked(component, itemCollection, userCollection); });  break;
                     case "nextButtonCreated":
                         await Profile.nextOrPrevButtonClicked(component, userCollection, itemCollection, component.Data.CustomId.Split("_")[0]);
                         break;

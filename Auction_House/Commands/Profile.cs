@@ -1,9 +1,7 @@
 ﻿using Discord;
-using Discord.Interactions;
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Diagnostics;
 using System.Reactive.Linq;
 
 
@@ -52,25 +50,46 @@ namespace Auction_Dbot.Auction_House.Commands
             
 
         }
-        public static EmbedBuilder profileEmbedBuilder(SocketUser socketUser, IMongoCollection<BsonDocument> collection)
+        public static EmbedBuilder profileEmbedBuilder(SocketUser socketUser, IMongoCollection<BsonDocument> collection,ulong userid = 0)
         {
             try
             {
-                BsonDocument userData = Database.getUserData((long)socketUser.Id, collection).Result;
-                int cash = userData.GetValue("cash").AsInt32;
-                int createdCards = userData.GetValue("cardListCreated").AsBsonArray.Count();
-                int ownedCards = userData.GetValue("cardListOwned").AsBsonArray.Count();
-                double rate = userData.GetValue("payoutRate").AsDouble;
-                string desc = $"🆔 UserID: {socketUser.Id}\n\n💰 Cash: {cash}🪙\n\n🀄 Total created cards: {createdCards}\n\n🃏 Total owned cards: {ownedCards}\n\n🎱 Current Payout Rate: {Math.Round(rate, 2)}%";
-                var embed = new EmbedBuilder()
-                    .WithAuthor("Profile")
-                    .WithTitle(socketUser.Username + "#" + socketUser.Discriminator)
-                    .WithDescription(desc)
-                    .WithColor(Color.Teal)
-                    .WithImageUrl(socketUser.GetAvatarUrl())
-                    .WithCurrentTimestamp();
+                if (socketUser == null)
+                {
+                    BsonDocument userData = Database.getUserData((long)userid, collection).Result;
+                    int cash = userData.GetValue("cash").AsInt32;
+                    int createdCards = userData.GetValue("cardListCreated").AsBsonArray.Count();
+                    int ownedCards = userData.GetValue("cardListOwned").AsBsonArray.Count();
+                    double rate = userData.GetValue("payoutRate").AsDouble;
+                    string desc = $"🆔 UserID: {userid}\n\n💰 Cash: {cash}🪙\n\n🃏 Total owned cards: {ownedCards}\n\n🀄 Total created cards: {createdCards}\n\n🎱 Current Payout Rate: {Math.Round(rate, 2)}%";
+                    var embed = new EmbedBuilder()
+                        .WithAuthor("Profile")
+                        .WithTitle(userData.GetValue("name").AsString)
+                        .WithDescription(desc)
+                        .WithColor(Color.Teal)
+                        .WithCurrentTimestamp();
 
-                return embed;
+                    return embed;
+                }
+                else
+                {
+                    BsonDocument userData = Database.getUserData((long)socketUser.Id, collection).Result;
+                    int cash = userData.GetValue("cash").AsInt32;
+                    int createdCards = userData.GetValue("cardListCreated").AsBsonArray.Count();
+                    int ownedCards = userData.GetValue("cardListOwned").AsBsonArray.Count();
+                    double rate = userData.GetValue("payoutRate").AsDouble;
+                    string desc = $"🆔 UserID: {socketUser.Id}\n\n💰 Cash: {cash}🪙\n\n🀄 Total created cards: {createdCards}\n\n🃏 Total owned cards: {ownedCards}\n\n🎱 Current Payout Rate: {Math.Round(rate, 2)}%";
+                    var embed = new EmbedBuilder()
+                        .WithAuthor("Profile")
+                        .WithTitle(socketUser.Username + "#" + socketUser.Discriminator)
+                        .WithDescription(desc)
+                        .WithColor(Color.Teal)
+                        .WithImageUrl(socketUser.GetAvatarUrl())
+                        .WithCurrentTimestamp();
+
+                    return embed;
+                }
+                
             }
             catch (Exception e)
             {
@@ -88,7 +107,7 @@ namespace Auction_Dbot.Auction_House.Commands
             
         }
 
-        public static (ComponentBuilder cmp, string desc) createCardProfileEmbed(BsonArray cardList, IMongoCollection<BsonDocument> itemCollection, SocketUser user, int startAT, string cardType, SocketUser interactor)
+        public static (ComponentBuilder cmp, string desc) createCardProfileEmbed(BsonArray cardList, IMongoCollection<BsonDocument> itemCollection, ulong userid, int startAT, string cardType, SocketUser interactor)
         {
             string desc = "";
             var buttons = new ComponentBuilder();
@@ -129,7 +148,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 }
                 if (!skipNext)
                 {
-                    buttons.AddRow(new ActionRowBuilder().WithButton("Next>>", $"{cardType}_" + interactor.Id + "_" + (i) + "_" + user.Id));
+                    buttons.AddRow(new ActionRowBuilder().WithButton("Next>>", $"{cardType}_" + interactor.Id + "_" + (i) + "_" + userid));
                 }
             }
             
@@ -140,20 +159,38 @@ namespace Auction_Dbot.Auction_House.Commands
         {
             try
             {
-                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
-                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                ulong userid = ulong.Parse(component.Data.CustomId.Split("_")[2]);
+                SocketUser user = Program._client.GetUser(userid);
+                BsonDocument userData = Database.getUserData((long)userid, userCollection).Result;
                 BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
-                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, user, 1, "nextButtonOwned", component.User);
 
+                if (user == null)
+                {
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, userid, 1, "nextButtonOwned", component.User);
+                    var embed = new EmbedBuilder()
+                    .WithAuthor(userData.GetValue("name").AsString)
+                    .WithTitle("Owned Cards")
+                    .WithDescription(desc)
+                    .WithColor(Color.DarkTeal)
+                    .WithCurrentTimestamp();
 
-                var embed = new EmbedBuilder()
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+                else
+                {
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, user.Id, 1, "nextButtonOwned", component.User);
+                    var embed = new EmbedBuilder()
                     .WithAuthor(user.Username + "#" + user.Discriminator)
                     .WithTitle("Owned Cards")
                     .WithDescription(desc)
                     .WithColor(Color.DarkTeal)
                     .WithCurrentTimestamp();
 
-                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+
             }
             catch (Exception e)
             {
@@ -166,21 +203,39 @@ namespace Auction_Dbot.Auction_House.Commands
         {
             try
             {
-                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[2]));
-                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                ulong userid = ulong.Parse(component.Data.CustomId.Split("_")[2]);
+                SocketUser user = Program._client.GetUser(userid);
+                BsonDocument userData = Database.getUserData((long)userid, userCollection).Result;
                 BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
 
-                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user, 1, "nextButtonCreated", component.User);
 
+                if (user == null)
+                {
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, userid, 1, "nextButtonCreated", component.User);
+                    var embed = new EmbedBuilder()
+                    .WithAuthor(userData.GetValue("name").AsString)
+                    .WithTitle("Created Cards")
+                    .WithDescription(desc)
+                    .WithColor(Color.DarkTeal)
+                    .WithCurrentTimestamp();
 
-                var embed = new EmbedBuilder()
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+                else
+                {
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user.Id, 1, "nextButtonCreated", component.User);
+                    var embed = new EmbedBuilder()
                     .WithAuthor(user.Username + "#" + user.Discriminator)
                     .WithTitle("Created Cards")
                     .WithDescription(desc)
                     .WithColor(Color.DarkTeal)
                     .WithCurrentTimestamp();
 
-                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+
             }
             catch (Exception e)
             {
@@ -190,7 +245,7 @@ namespace Auction_Dbot.Auction_House.Commands
             
         }
         // if a card button is clicked, get the card info. customid = cardButton_cmdUserId_itemId
-        public static async Task cardButtonClicked(SocketMessageComponent component, IMongoCollection<BsonDocument> itemCollection)
+        public static async Task cardButtonClicked(SocketMessageComponent component, IMongoCollection<BsonDocument> itemCollection, IMongoCollection<BsonDocument> userCollection)
         {
             ObjectId itemid = ObjectId.Parse(component.Data.CustomId.Split("_")[2]);
             BsonDocument itemData = Database.getItemData(itemid, itemCollection).Result;
@@ -202,7 +257,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 SocketTextChannel channel = component.Channel as SocketTextChannel;
                 isNsfw = channel.IsNsfw;
             }
-            var embed = Card.createCard(itemData,isNsfw);
+            var embed = Card.createCard(itemData,userCollection,isNsfw);
 
             await component.UpdateAsync(x => { x.Embed = embed.Build(); });
         }
@@ -218,45 +273,95 @@ namespace Auction_Dbot.Auction_House.Commands
         {
             if (cardType == "nextButtonCreated" || cardType == "previousButtonCreated")
             {
+                ulong userId = ulong.Parse(component.Data.CustomId.Split("_")[3]);
                 int startAt = int.Parse(component.Data.CustomId.Split("_")[2]);
-                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[3]));
-                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
-                BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
-                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user, startAt, cardType,component.User);
-                // if startAt is not 1 means its not the first page then add previous button
-                if (startAt != 1)
+                SocketUser user = Program._client.GetUser(userId);
+                if (user == null)
                 {
-                    buttons.AddRow(new ActionRowBuilder().WithButton("<<Previous", $"previousButtonCreated_{component.User.Id}_" + (startAt - 10) + "_" + user.Id));
-                }
-                var embed = new EmbedBuilder()
-                .WithAuthor(user.Username + "#" + user.Discriminator)
-                .WithTitle("Created Cards")
-                .WithDescription(desc)
-                .WithColor(Color.DarkTeal)
-                .WithCurrentTimestamp(); 
-
-                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
-            }
-            // same for owned list
-            else if (cardType == "nextButtonOwned" || cardType == "previousButtonOwned")
-            {
-                int startAt = int.Parse(component.Data.CustomId.Split("_")[2]);
-                SocketUser user = Program._client.GetUser(ulong.Parse(component.Data.CustomId.Split("_")[3]));
-                BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
-                BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
-                (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, user, startAt, "nextButtonOwned",component.User);
-                if (startAt != 1)
-                {
-                    buttons.WithButton("<<Previous", $"previousButtonOwned_{component.User.Id}_" + (startAt - 10) + "_" + user.Id);
-                }
-                var embed = new EmbedBuilder()
-                    .WithAuthor(user.Username + "#" + user.Discriminator)
-                    .WithTitle("Owned Cards")
+                    BsonDocument userData = Database.getUserData((long)userId, userCollection).Result;
+                    BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, userId, startAt, cardType, component.User);
+                    // if startAt is not 1 means its not the first page then add previous button
+                    if (startAt != 1)
+                    {
+                        buttons.AddRow(new ActionRowBuilder().WithButton("<<Previous", $"previousButtonCreated_{component.User.Id}_" + (startAt - 10) + "_" + userId));
+                    }
+                    var embed = new EmbedBuilder()
+                    .WithAuthor(userData.GetValue("name").AsString)
+                    .WithTitle("Created Cards")
                     .WithDescription(desc)
                     .WithColor(Color.DarkTeal)
                     .WithCurrentTimestamp();
 
-                await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+                else
+                {
+                    BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                    BsonArray createdCard = userData.GetValue("cardListCreated").AsBsonArray;
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(createdCard, itemCollection, user.Id, startAt, cardType, component.User);
+                    // if startAt is not 1 means its not the first page then add previous button
+                    if (startAt != 1)
+                    {
+                        buttons.AddRow(new ActionRowBuilder().WithButton("<<Previous", $"previousButtonCreated_{component.User.Id}_" + (startAt - 10) + "_" + user.Id));
+                    }
+                    var embed = new EmbedBuilder()
+                    .WithAuthor(user.Username + "#" + user.Discriminator)
+                    .WithTitle("Created Cards")
+                    .WithDescription(desc)
+                    .WithColor(Color.DarkTeal)
+                    .WithCurrentTimestamp();
+
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+                
+            }
+            // same for owned list
+            else if (cardType == "nextButtonOwned" || cardType == "previousButtonOwned")
+            {
+                ulong userId = ulong.Parse(component.Data.CustomId.Split("_")[3]);
+                int startAt = int.Parse(component.Data.CustomId.Split("_")[2]);
+                SocketUser user = Program._client.GetUser(userId);
+                if (user == null)
+                {                    
+                    BsonDocument userData = Database.getUserData((long)userId, userCollection).Result;
+                    BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, userId, startAt, "nextButtonOwned", component.User);
+                    if (startAt != 1)
+                    {
+                        buttons.WithButton("<<Previous", $"previousButtonOwned_{component.User.Id}_" + (startAt - 10) + "_" + userId);
+                    }
+                    var embed = new EmbedBuilder()
+                        .WithAuthor(userData.GetValue("name").AsString)
+                        .WithTitle("Owned Cards")
+                        .WithDescription(desc)
+                        .WithColor(Color.DarkTeal)
+                        .WithCurrentTimestamp();
+
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
+                else
+                {
+                    BsonDocument userData = Database.getUserData((long)user.Id, userCollection).Result;
+                    BsonArray ownedCard = userData.GetValue("cardListOwned").AsBsonArray;
+                    (ComponentBuilder buttons, string desc) = createCardProfileEmbed(ownedCard, itemCollection, user.Id, startAt, "nextButtonOwned", component.User);
+                    if (startAt != 1)
+                    {
+                        buttons.WithButton("<<Previous", $"previousButtonOwned_{component.User.Id}_" + (startAt - 10) + "_" + user.Id);
+                    }
+                    var embed = new EmbedBuilder()
+                        .WithAuthor(user.Username + "#" + user.Discriminator)
+                        .WithTitle("Owned Cards")
+                        .WithDescription(desc)
+                        .WithColor(Color.DarkTeal)
+                        .WithCurrentTimestamp();
+
+                    await component.UpdateAsync(x => { x.Embed = embed.Build(); x.Components = buttons.Build(); });
+                    return;
+                }
             }
         }
     } // class ends here

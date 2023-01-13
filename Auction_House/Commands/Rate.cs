@@ -2,17 +2,12 @@
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Auction_Dbot.Auction_House.Commands
 {
     public class Rate
     {
-        public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection)
+        public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection, IMongoCollection<BsonDocument> userCollection)
         {
             var filter = Builders<BsonDocument>.Filter.Eq("rarity", 0.0f);
             var list = await collection.Find(filter).ToListAsync();
@@ -30,7 +25,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 SocketTextChannel channel = cmd.Channel as SocketTextChannel;
                 isNsfw = channel.IsNsfw;
             }
-            var embedBuilder = Card.createCard(itemData,isNsfw);
+            var embedBuilder = Card.createCard(itemData,userCollection,isNsfw);
             var menuBuilder = new SelectMenuBuilder()
             .WithPlaceholder("Select an option")
             .WithCustomId($"rateMenu_{itemData.GetValue("cardName")}_{cmd.User.Id}")

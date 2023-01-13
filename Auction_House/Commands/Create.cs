@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using ProfanityFilter;
 
 namespace Auction_Dbot.Auction_House.Commands
 {

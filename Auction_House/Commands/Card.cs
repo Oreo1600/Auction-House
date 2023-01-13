@@ -7,7 +7,7 @@ namespace Auction_Dbot.Auction_House.Commands
 {
     public class Card
     {
-        public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection)
+        public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection, IMongoCollection<BsonDocument> userCollection)
         {
             try
             {
@@ -21,7 +21,7 @@ namespace Auction_Dbot.Auction_House.Commands
                         SocketTextChannel channel = cmd.Channel as SocketTextChannel;
                         isNsfw = channel.IsNsfw;
                     }                 
-                    var embedBuiler = createCard(itemData,isNsfw);
+                    var embedBuiler = createCard(itemData, userCollection, isNsfw);
                     await cmd.RespondAsync(embed: embedBuiler.Build());
                 }
             }
@@ -34,10 +34,20 @@ namespace Auction_Dbot.Auction_House.Commands
             }
             
         }
-        public static EmbedBuilder createCard(BsonDocument itemData,bool isChannelNsfw = false)
+        public static EmbedBuilder createCard(BsonDocument itemData, IMongoCollection<BsonDocument> userCollection, bool isChannelNsfw = false)
         {
-            SocketUser creator = Program._client.GetUser(ulong.Parse(itemData.GetValue("creator").AsInt64.ToString()));
-            string creatorMention = creator.Mention;
+            SocketUser creator = Program._client.GetUser(ulong.Parse(itemData.GetValue("creator").AsInt64.ToString()));        
+            string creatorMention = "";
+            if (creator == null)
+            {
+                BsonDocument creatorData = Database.getUserData(itemData.GetValue("creator").AsInt64, userCollection).Result;
+                creatorMention = creatorData.GetValue("name").AsString;
+            }
+            else
+            {
+                creatorMention = creator.Username + "#" + creator.DiscriminatorValue;
+            }
+
             string ownerMention = "Not owned";
             string rarity = "Not yet evaluated";
             int price = itemData.GetValue("price").AsInt32;
@@ -51,7 +61,15 @@ namespace Auction_Dbot.Auction_House.Commands
             if (itemData.GetValue("owner").AsInt64.ToString() != "0")
             {
                 SocketUser owner = Program._client.GetUser(ulong.Parse(itemData.GetValue("owner").AsInt64.ToString()));
-                ownerMention = owner.Mention;
+                if (owner == null)
+                {
+                    BsonDocument ownerData = Database.getUserData(itemData.GetValue("owner").AsInt64, userCollection).Result;
+                    ownerMention = ownerData.GetValue("name").AsString;
+                }
+                else
+                {
+                    ownerMention = owner.Username + "#" + owner.Discriminator;
+                }
             }
             if (float.Parse(itemData.GetValue("rarity").AsDouble.ToString()) != 0.0)
             {
@@ -65,7 +83,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 }
                 rarity += "⭐";
             }
-            string description = $"{cardDesc}\n\n👤 Creator: {creatorMention}\n\n🤴 Owner:{ownerMention}\n\n💫 Rarity: {rarity}";
+            string description = $"{cardDesc}\n\n👤 Creator: {creatorMention}\n\n🤴 Owner: {ownerMention}\n\n💫 Rarity: {rarity}";
             if (price != 0)
             {
                 description = description + "\n\n💰 Sold for " + price + "🪙";

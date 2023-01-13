@@ -4,10 +4,6 @@ using Discord.Rest;
 using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Reactive;
-using System.Timers;
-using static MongoDB.Bson.Serialization.Serializers.SerializerHelper;
-using Timer = System.Timers.Timer;
 
 namespace Auction_Dbot.Auction_House
 {
@@ -73,7 +69,7 @@ namespace Auction_Dbot.Auction_House
 
                 SocketTextChannel channel = Program._client.GetChannel(ulong.Parse(house.GetValue("auctionChannel").AsInt64.ToString())) as SocketTextChannel;
 
-                var embed = Card.createCard(item,channel.IsNsfw);
+                var embed = Card.createCard(item,userCollection,channel.IsNsfw);
 
                 string pingRole = house.GetValue("mentionRole").AsString;
                 // sending the message

@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBotsList.Api;
 using System.Timers;
 
 namespace Auction_Dbot
@@ -14,6 +15,7 @@ namespace Auction_Dbot
         public static System.Timers.Timer auctionTimer;
         public static System.Timers.Timer moneyPoolTimer;
         public static System.Timers.Timer gradRateUpgrade;
+        public static AuthDiscordBotListApi DblApi;
         public async Task MainAsync()
         {
             try
@@ -21,7 +23,8 @@ namespace Auction_Dbot
                 var config = new DiscordSocketConfig()
                 {
                     // Other config options can be presented here.
-                    GatewayIntents = GatewayIntents.All
+                    GatewayIntents = GatewayIntents.All,
+                    AlwaysDownloadUsers = true
                 };
                 _client = new DiscordSocketClient(config);
                 _client.Log += Log;
@@ -31,6 +34,7 @@ namespace Auction_Dbot
                 //Starting the bot
                 await _client.LoginAsync(TokenType.Bot, token);
                 await _client.StartAsync();
+                DblApi = new AuthDiscordBotListApi(935183469959602216, Environment.GetEnvironmentVariable("topggToken"));
                 Database.Connect();                
 
                 //Starting an auction
@@ -60,8 +64,6 @@ namespace Auction_Dbot
                 _client.LeftGuild += Handlers.LeftGuildHandlers;
                 _client.SelectMenuExecuted += Handlers.SelectMenuExecutedHandler;
                 _client.ButtonExecuted += Handlers.Buttonhandler;
-
-                
 
                 await Task.Delay(-1);
             }
