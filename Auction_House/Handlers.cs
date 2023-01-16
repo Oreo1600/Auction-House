@@ -30,7 +30,7 @@ namespace Auction_Dbot.Auction_House
                     case "help": await Help.Execute(command); break;
                     case "create": await Create.Execute(command, userCollection); break;
                     case "card": await Card.Execute(command, itemCollection,userCollection); break;
-                    case "rate": await Rate.Execute(command,userCollection, itemCollection); break;
+                    case "rate": await Rate.Execute(command,itemCollection,userCollection); break;
                     case "profile": await Profile.Execute(command, userCollection); break;
                     case "pool": await Pool.Execute(command, userCollection); break;
                     case "server_settings": await ChangeSettings.Execute(command, serverCollection); break;
@@ -51,9 +51,6 @@ namespace Auction_Dbot.Auction_House
         {           
             try
             {
-                var voteCmd = new SlashCommandBuilder().WithName("vote").WithDescription("Vote auction house on top.gg and get rewards");
-                await Program._client.CreateGlobalApplicationCommandAsync(voteCmd.Build());
-                Console.WriteLine("Vote command is added");
                 await Program._client.SetGameAsync("send help. but with /");
                 Console.WriteLine("Logged in as " + Program._client.CurrentUser.Username);
             }

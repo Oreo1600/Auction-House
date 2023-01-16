@@ -9,7 +9,7 @@ namespace Auction_Dbot.Auction_House.Commands
     {
         public static async Task Execute(SocketSlashCommand cmd, IMongoCollection<BsonDocument> collection, IMongoCollection<BsonDocument> userCollection)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("rarity", 0);
+            var filter = Builders<BsonDocument>.Filter.Eq("rarity", 0.0);
             var list = await collection.Find(filter).ToListAsync();
             if (list.Count == 0)
             {

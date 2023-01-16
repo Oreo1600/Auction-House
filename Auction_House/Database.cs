@@ -122,10 +122,6 @@ namespace Auction_Dbot.Auction_House
                     Console.WriteLine("Application command created for " + guild.Name);
                     await AddServer(Program._client.GetGuild(guild.Id), serverCollection);
                 }
-                else
-                {
-                    Console.WriteLine($"{guild.Name} already exist.");
-                }
             }
         }
         public static async Task CheckAndAddUser(SocketUser user, IMongoCollection<BsonDocument> userCollection)
