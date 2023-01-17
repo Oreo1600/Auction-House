@@ -20,6 +20,8 @@ namespace Auction_Dbot
         {
             try
             {
+                // DotEnv.Load("../../../.env");
+
                 var config = new DiscordSocketConfig()
                 {
                     // Other config options can be presented here.
@@ -97,7 +99,9 @@ namespace Auction_Dbot
                 Console.WriteLine(cmdException);
             }
             else
+            {
                 Console.WriteLine($"[General/{message.Severity}] {message}");
+            }
 
             return Task.CompletedTask;
         }

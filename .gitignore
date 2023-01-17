@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# files used for setting up environment variables locally
+.env
+DotEnv.cs
+
 # User-specific files
 *.rsuser
 *.suo

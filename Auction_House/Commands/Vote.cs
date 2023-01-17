@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Auction_Dbot.Auction_House.Commands
 {
@@ -24,9 +25,24 @@ namespace Auction_Dbot.Auction_House.Commands
             DateTime voteExpire = voteTimer.AddHours(12);
             if (voteExpire.CompareTo(DateTime.UtcNow) < 0)
             {
-                
-                List<IDblEntity> stats = await Program.DblApi.GetVotersAsync();
-                if (stats.Any(v => v.Id == cmd.User.Id))
+                HttpClient httpClient = new();
+                httpClient.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("topggToken"));
+                string botId = "935183469959602216";
+                string uri = $"https://top.gg/api/bots/{botId}/check?userId={cmd.User.Id}";
+                dynamic jsonObj;
+
+                try
+                {
+                    string json = await httpClient.GetStringAsync(uri);
+                    jsonObj = JObject.Parse(json);
+                }
+                catch
+                {
+                    throw;
+                }
+
+                // List<IDblEntity> stats = await Program.DblApi.GetVotersAsync();
+                if (jsonObj.voted != 0) // (stats.Any(v => v.Id == cmd.User.Id))
                 {
                     var cashUpdate = Builders<BsonDocument>.Update.Inc("cash", 4000);
                     var rateUpdate = Builders<BsonDocument>.Update.Inc("payoutRate", 4.0);
