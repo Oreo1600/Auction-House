@@ -20,7 +20,7 @@ namespace Auction_Dbot
         {
             try
             {
-                // DotEnv.Load("../../../.env");
+                //DotEnv.Load("../../../.env");
 
                 var config = new DiscordSocketConfig()
                 {

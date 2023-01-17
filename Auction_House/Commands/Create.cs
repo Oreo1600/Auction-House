@@ -120,7 +120,7 @@ namespace Auction_Dbot.Auction_House.Commands
 
                 await modal.User.SendMessageAsync($"Your card's photo is missing!\nCard Name: {cardName} \nCard Description: {cardDesc}\nYou may send an image here after this message. Note: You cannot change your photo.");
 
-                await modal.FollowupAsync("Successfully created card!\nYou have earned 500🪙.\nYour Payout rate is increased by 0.2%", ephemeral:true);
+                await modal.FollowupAsync("Successfully created card!\nPlease set the image of the card through DM.\n\nYou have earned 500🪙.\nYour Payout rate is increased by 0.2%", ephemeral:true);
             }
             catch(Exception e)
             {

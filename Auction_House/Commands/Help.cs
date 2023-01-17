@@ -25,6 +25,7 @@ namespace Auction_Dbot.Auction_House.Commands
                 "\n</leaderboard:1059005652363640884> - See global leaderboard" +
                 "\n/server_settings - Edit server settings (admin only)" +
                 "\n</set_ping_role:1061006721688027236> - Set a role that bot should ping when an auction appear in the server (admin only)" +
+                "\n</vote:1063541819901747261> - Vote on top.gg to get nice rewards" +
                 "\n</help:1049238073910763521> - Know how to use the bot" +
                 "\n\n**To get notified when an auction appear on any server, join our support server.**\nJoin the support server: https://discord.gg/4ENS22mNxx" +
                 "\n\nif you find any images that are explicit and not marked as nsfw, please report to the support server.";
