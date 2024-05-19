@@ -10,6 +10,7 @@ Then, Your card will be auctioned and a owner will be the one who has highest bi
 #Auction House
 
 The auction house is a server that is chosen for an auction for a particular card. The auction house is chosen at random. You can turn off the auction house for your server from server settings.
+
 Note: If your server is private and you don't want anyone to join your server, Make sure you disable the auction house from /server_settings command.
 
 #Money Pool
@@ -20,7 +21,7 @@ Creating a card increases your payout rate by 0.2% and rating a card increases y
 Enjoy the Auction House!
 
 Commands
-/create - Create a card
+/create - Create a card<br>
 /card - Search for a card
 /rate - decide rarity of a random card
 /pool - Withdraw cash from Money Pool
